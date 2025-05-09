@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.dbclient-js": "javascript",
+        "autoclicker.C": "cpp",
+        "thread": "cpp"
+    }
+}
