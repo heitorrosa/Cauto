@@ -2,24 +2,17 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <windows.h>
-#include <winuser.h>
-#include <string.h>
-#include <shellapi.h>
+#include <time.h>
 
-// Define enums for mouse actions
-typedef enum {
-    LEFT_DOWN,
-    LEFT_UP,
-    RIGHT_DOWN,
-    RIGHT_UP
-} mouse_type_t;
+// Randomizador de cliques
+float randomizar(float min, float max) {
+    static unsigned int seed = 0;
+    if (!seed) seed = GetTickCount() ^ GetCurrentProcessId();
+    seed = (214013 * seed + 2531011);
+    return min + (seed >> 16) * (1.0f / 65535.0f) * (max - min);
+}
 
-typedef enum {
-    LEFT,
-    RIGHT
-} mouse_side_t;
-
-bool cursor_visible(void) {
+bool cursorVisivel(void) {
     CURSORINFO ci;
     ci.cbSize = sizeof(CURSORINFO);
     
@@ -33,85 +26,85 @@ bool cursor_visible(void) {
     return false;
 }
 
-bool botaoEsquerdoPressionado(void) {
-    return GetAsyncKeyState(VK_LBUTTON) & 0x8000;
-}
-
-void send_input(mouse_type_t m_type, mouse_side_t m_side) {
+void enviarClique(bool down) {
     POINT pos;
-    if (!GetCursorPos(&pos)) 
-        return;
-
-    HWND curr_wnd = GetForegroundWindow();
-    
-    // Convert our enum types to Windows message types
-    UINT msg;
-    switch (m_type) {
-        case LEFT_DOWN: msg = WM_LBUTTONDOWN; break;
-        case LEFT_UP: msg = WM_LBUTTONUP; break;
-        case RIGHT_DOWN: msg = WM_RBUTTONDOWN; break;
-        case RIGHT_UP: msg = WM_RBUTTONUP; break;
-    }
-    
-    WPARAM wparam;
-    switch (m_side) {
-        case LEFT: wparam = MK_LBUTTON; break;
-        case RIGHT: wparam = MK_RBUTTON; break;
-    }
-    
-    PostMessage(curr_wnd, msg, wparam, MAKELPARAM(pos.x, pos.y));
-}
-
-void click(bool is_down, bool is_left) {
-    if (is_down) {
-        if (is_left) {
-            send_input(LEFT_DOWN, LEFT);
-        } else {
-            send_input(RIGHT_DOWN, RIGHT);
-        }
-    } else {
-        if (is_left) {
-            send_input(LEFT_UP, LEFT);
-        } else {
-            send_input(RIGHT_UP, RIGHT);
-        }
-    }
+    GetCursorPos(&pos);
+    HWND window = GetForegroundWindow();
+    PostMessage(window, down ? WM_LBUTTONDOWN : WM_LBUTTONUP, MK_LBUTTON, MAKELPARAM(pos.x, pos.y));
 }
 
 int main() {
-    int cps;
-    bool inventario = false;
+    int CPS;
+    float duracaoMinimaClique, duracaoMaximaClique, VariacaoClique;
+    printf("CPS desejado: ");
+    scanf("%d", &CPS);
 
-    // Seletor de CPS
-    printf("Selecione o número de cliques por segundo (CPS):\n");
-    scanf("%d", &cps);
-
-    if(cps < 1) {
-        printf("CPS deve ser maior que 0.\n");
-        return 0;
+    if(CPS < 1) {
+        printf("O CPS deve ser maior que 0.\n");
+        return 1;
     }
 
-    printf("Pressione a tecla 'B' para clicar dentro do inventario.\n");
+    fflush(stdin); // Limpa o buffer de entrada
 
-    while(true) {
-        // Alternar entre os modos de Inventário
+    printf("Selecione a minima duracao do clique (ms) / Recomendado: 22ms: ");
+    scanf("%f", &duracaoMinimaClique);
+    if(duracaoMinimaClique < 10) {
+        printf("A duracao do clique deve ser maior que 10.\n");
+        return 1;
+    }
+
+    printf("Selecione a maxima duracao do clique (ms) / Recomendado: 30ms: ");
+    scanf("%f", &duracaoMaximaClique);
+    if(duracaoMaximaClique < duracaoMinimaClique) {
+        printf("A maxima duracao do clique deve ser maior que a minima.\n");
+        return 1;
+    }
+
+    printf("Selecione a variacao da duracao do clique (%%) / Recomendado: 10%%: ");
+    scanf("%f", &VariacaoClique);
+    if(VariacaoClique < 0) {
+        printf("A variacao da duracao do clique deve ser maior que 0.\n");
+        return 1;
+    }
+
+    const float delayBase = 1000.0f / CPS;
+    bool inventario = false;
+
+    printf("Clique 'B' para alternar o clique dentro do inventario.\n");
+
+    while (true) {
         if (GetAsyncKeyState('B') & 0x8000) {
             inventario = !inventario;
-            printf("Inventario: %s!\n", inventario ? "Ativado" : "Desativado");
+            printf("Inventario: %s\n", inventario ? "ON" : "OFF");
             Sleep(200);
         }
 
-        // Lógica do Autoclicker
-        if (botaoEsquerdoPressionado()) {
-            if (inventario || !cursor_visible()) {
-                    click(true, true); // down
-                    Sleep(20);
-                    click(false, true); // up
-                }
-                Sleep(1000 / cps);
+        if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
+            if (inventario || !cursorVisivel()) {
+
+                // Randomizador para os cliques (Ajuda no Bypass de Anti-Cheats) //
+
+                // Randomiza o delay entre os cliques
+                float duracaoClique = randomizar(duracaoMinimaClique, duracaoMaximaClique); // 22-30ms duracao do clique
+
+                // Randomiza a quantia de Cliques (Persistence)
+                float delayVariacao = randomizar(-(VariacaoClique / 100.0f), (VariacaoClique / 100.0f)) * delayBase; // ±10% variacao do delay
+
+                float randomizador = delayBase - duracaoClique + delayVariacao;
+
+                // delay minimo
+                if (randomizador < 5) randomizador = 5;
+
+                // Executa a funcao do clique
+                enviarClique(true);
+                Sleep((int)duracaoClique);
+                enviarClique(false);
+                Sleep((int)randomizador);
             }
         }
-
-        Sleep(1);
-
+        else {
+            Sleep(1);
+        }
+    }
+    return 0;
 }
