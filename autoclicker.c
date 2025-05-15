@@ -6,6 +6,19 @@
 #include <string.h>
 #include <shellapi.h>
 
+// Define enums for mouse actions
+typedef enum {
+    LEFT_DOWN,
+    LEFT_UP,
+    RIGHT_DOWN,
+    RIGHT_UP
+} mouse_type_t;
+
+typedef enum {
+    LEFT,
+    RIGHT
+} mouse_side_t;
+
 bool cursor_visible(void) {
     CURSORINFO ci;
     ci.cbSize = sizeof(CURSORINFO);
@@ -20,25 +33,54 @@ bool cursor_visible(void) {
     return false;
 }
 
-// Simulate a left click at current cursor position
-void SendRealClick() {
-    INPUT inputs[2] = {0};
-    
-    // Mouse down
-    inputs[0].type = INPUT_MOUSE;
-    inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
-    
-    // Mouse up
-    inputs[1].type = INPUT_MOUSE;
-    inputs[1].mi.dwFlags = MOUSEEVENTF_LEFTUP;
-    
-    SendInput(2, inputs, sizeof(INPUT));
+bool botaoEsquerdoPressionado(void) {
+    return GetAsyncKeyState(VK_LBUTTON) & 0x8000;
 }
 
+void send_input(mouse_type_t m_type, mouse_side_t m_side) {
+    POINT pos;
+    if (!GetCursorPos(&pos)) 
+        return;
+
+    HWND curr_wnd = GetForegroundWindow();
+    
+    // Convert our enum types to Windows message types
+    UINT msg;
+    switch (m_type) {
+        case LEFT_DOWN: msg = WM_LBUTTONDOWN; break;
+        case LEFT_UP: msg = WM_LBUTTONUP; break;
+        case RIGHT_DOWN: msg = WM_RBUTTONDOWN; break;
+        case RIGHT_UP: msg = WM_RBUTTONUP; break;
+    }
+    
+    WPARAM wparam;
+    switch (m_side) {
+        case LEFT: wparam = MK_LBUTTON; break;
+        case RIGHT: wparam = MK_RBUTTON; break;
+    }
+    
+    PostMessage(curr_wnd, msg, wparam, MAKELPARAM(pos.x, pos.y));
+}
+
+void click(bool is_down, bool is_left) {
+    if (is_down) {
+        if (is_left) {
+            send_input(LEFT_DOWN, LEFT);
+        } else {
+            send_input(RIGHT_DOWN, RIGHT);
+        }
+    } else {
+        if (is_left) {
+            send_input(LEFT_UP, LEFT);
+        } else {
+            send_input(RIGHT_UP, RIGHT);
+        }
+    }
+}
 
 int main() {
     int cps;
-    bool inventario = false, quebrarBlocos = false;
+    bool inventario = false;
 
     // Seletor de CPS
     printf("Selecione o número de cliques por segundo (CPS):\n");
@@ -49,38 +91,27 @@ int main() {
         return 0;
     }
 
-    printf("Pressione a tecla 'B' clicar dentro do inventario.\n");
+    printf("Pressione a tecla 'B' para clicar dentro do inventario.\n");
 
     while(true) {
-        if (GetAsyncKeyState('B') & 0x8000 != 0) {
+        // Alternar entre os modos de Inventário
+        if (GetAsyncKeyState('B') & 0x8000) {
             inventario = !inventario;
             printf("Inventario: %s!\n", inventario ? "Ativado" : "Desativado");
+            Sleep(200);
         }
 
-            if (inventario == true) {
-                while (GetAsyncKeyState(VK_LBUTTON) & 0x8000 && !cursor_visible()) {
-                    SendRealClick();
-                    Sleep(1000 / cps);
-
-                    Sleep(1); // Reduce CPU usage
-
-                    if (GetAsyncKeyState('B') & 0x8000 != 0) {
-                        inventario = !inventario;
-                        printf("Inventario: %s!\n", inventario ? "Ativado" : "Desativado");
-                    }
+        // Lógica do Autoclicker
+        if (botaoEsquerdoPressionado()) {
+            if (inventario || !cursor_visible()) {
+                    click(true, true); // down
+                    Sleep(20);
+                    click(false, true); // up
                 }
-            } else {
-                while (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
-                    SendRealClick();
-                    Sleep(1000 / cps);
-
-                    Sleep(1); // Reduce CPU usage
-
-                    if (GetAsyncKeyState('B') & 0x8000 != 0) {
-                        inventario = !inventario;
-                        printf("Inventario: %s!\n", inventario ? "Ativado" : "Desativado");
-                    }
-                }
+                Sleep(1000 / cps);
             }
-    }
+        }
+
+        Sleep(1);
+
 }
