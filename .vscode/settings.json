@@ -4,5 +4,6 @@
         "autoclicker.C": "cpp",
         "thread": "cpp",
         "winuser.h": "c"
-    }
+    },
+    "C_Cpp.errorSquiggles": "disabled"
 }
