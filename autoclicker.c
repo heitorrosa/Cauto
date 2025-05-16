@@ -90,6 +90,7 @@ int main() {
                 // Randomiza a quantia de Cliques (Persistence)
                 float delayVariacao = randomizar(-(VariacaoClique / 100.0f), (VariacaoClique / 100.0f)) * delayBase; // ±10% variacao do delay
 
+                // Randomizador completo
                 float randomizador = delayBase - duracaoClique + delayVariacao;
 
                 // delay minimo
