@@ -3,7 +3,9 @@
         "*.dbclient-js": "javascript",
         "autoclicker.C": "cpp",
         "thread": "cpp",
-        "winuser.h": "c"
+        "winuser.h": "c",
+        "stdbool.h": "c",
+        "windows.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }
