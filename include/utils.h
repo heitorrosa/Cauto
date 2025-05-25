@@ -7,20 +7,19 @@
 #include <windows.h>
 
 typedef struct configCauto {
-    bool ativo;
-    bool clicarInventario;
-    bool quebrarBlocos;
+    bool active;
+    bool mcOnly;
+    bool clickInventory;
+    bool breakBlocks;
 
     int inputCPS;
-    float durMinClique;
-    float durMaxClique;
+    float minDurationClick;
+    float maxDurationClick;
 
-    int chanceDrop;
-    int chanceSpike;
-    int cpsDrop;
-    int cpsSpike;
-
-    float variacaoClique;
+    float dropChance;
+    float spikeChance;
+    int dropCPS;
+    int spikeCPS;
 } configCauto;
 
 void init_config(configCauto *config);

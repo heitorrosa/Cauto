@@ -7,30 +7,31 @@
 #include "utils.h"
 
 void init_config(configCauto *config) {
-    config->ativo = true;
-    config->clicarInventario = false;
-    config->quebrarBlocos = false;
+    config->active = true;
+    config->mcOnly = true;
+    config->clickInventory = false;
+    config->breakBlocks = false;
 
     config->inputCPS = 14;
-    config->durMinClique = 22;
-    config->durMaxClique = 33;
+    config->minDurationClick = 22;
+    config->maxDurationClick = 33;
 
-    config->chanceDrop = 50;
-    config->chanceSpike = 50;
-    config->cpsDrop = 10;
-    config->cpsSpike = 10;
-
-    config->variacaoClique = 10;
+    config->dropChance = 50;
+    config->spikeChance = 50;
+    config->dropCPS = 3;
+    config->spikeCPS = 2;
 }
 
-float randomizar(float min, float max) {
+configCauto config;
+
+float randomization(float min, float max) {
     static unsigned int seed = 0;
     if (!seed) seed = GetTickCount() ^ GetCurrentProcessId();
     seed = (214013 * seed + 2531011);
     return min + (seed >> 16) * (1.0f / 65535.0f) * (max - min);
 }
 
-bool cursorVisivel(void) {
+bool visibleCursor(void) {
     CURSORINFO ci;
     ci.cbSize = sizeof(CURSORINFO);
     
@@ -44,9 +45,13 @@ bool cursorVisivel(void) {
     return false;
 }
 
-void enviarClique(bool down) {
+void sendClick(bool down) {
     POINT pos;
     GetCursorPos(&pos);
+
     HWND window = GetForegroundWindow();
+
+    // FindWindowA(NULL, "javaw");
+    //GetForegroundWindow();
     PostMessage(window, down ? WM_LBUTTONDOWN : WM_LBUTTONUP, MK_LBUTTON, MAKELPARAM(pos.x, pos.y));
 }
