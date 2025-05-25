@@ -4,13 +4,12 @@
 #include <windows.h>
 #include <time.h>
 
+#include "utils.h"
 #include "utils.c"
 
 int main() {
-    
-    // Configura o Autoclicker com os valores padrão
     configCauto config;
-    init_config(&config);
+    // init_config(&config);
 
     printf("CPS desejado: ");
     scanf("%d", &config.inputCPS);
@@ -20,7 +19,7 @@ int main() {
         return 1;
     }
 
-    fflush(stdin); // Limpa o buffer de entrada
+    fflush(stdin);
 
     printf("Selecione a minima duracao do clique (ms) / Recomendado: 22ms: ");
     scanf("%f", &config.durMinClique);
@@ -46,6 +45,7 @@ int main() {
     const float CPS = 1000.0f / config.inputCPS;
 
     printf("Clique 'B' para alternar o clique dentro do inventario.\n");
+    printf("Clique 'N' para alternar o clique dentro do inventario.\n");
 
     while (true) {
         if (GetAsyncKeyState('B') & 0x8000) {
@@ -54,33 +54,30 @@ int main() {
             Sleep(200);
         }
 
+        if (GetAsyncKeyState('N') & 0x8000) {
+            config.quebrarBlocos = !config.quebrarBlocos;
+            printf("Quebrar Blocos: %s\n", config.quebrarBlocos ? "ON" : "OFF");
+            Sleep(200);
+        }
         if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
             if (config.clicarInventario || !cursorVisivel()) {
-
-                // Randomiza o delay entre os cliques
-                float duracaoClique = randomizar(config.durMinClique, config.durMaxClique); // 22-30ms duracao do clique
-
-                // Randomiza a quantia de Cliques (Persistence)
+                float duracaoClique = randomizar(config.durMinClique, config.durMaxClique);
                 float delayVariacao = randomizar(-(config.variacaoClique / 100.0f), (config.variacaoClique / 100.0f)) * CPS;
+                float cliqueRandomizado = CPS - duracaoClique + delayVariacao;
 
-                // Randomiza a frequencia de cliques (Spike e Drop)
-                // float randSpike = randomizar(-(randSpike / 100.0f)) * CPS; // Drop
-                // float randDrop = randomizar((randDrop / 100.0f)) * CPS; // Spike
-
-                // Randomizador completo
-                float cliqueRandomizado = CPS - duracaoClique + delayVariacao; // (delaySpike + delayDrop)
-
-                // delay minimo
                 if (cliqueRandomizado < 5) cliqueRandomizado = 5;
 
-                // Executa a funcao do clique
-                enviarClique(true);
-                Sleep((int)duracaoClique);
-                enviarClique(false);
-                Sleep((int)cliqueRandomizado);
+                if(config.quebrarBlocos) {
+                    enviarClique(true);
+                    Sleep((int)cliqueRandomizado + (int)duracaoClique);
+                } else {
+                    enviarClique(true);
+                    Sleep((int)duracaoClique);
+                    enviarClique(false);
+                    Sleep((int)cliqueRandomizado);
+                }
             }
-        }
-        else {
+        } else {
             Sleep(1);
         }
     }

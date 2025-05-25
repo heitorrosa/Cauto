@@ -4,24 +4,7 @@
 #include <windows.h>
 #include <time.h>
 
-// Configurações do AutoClicker
-typedef struct {
-    bool ativo = true;
-    bool clicarInventario = false;
-
-    int inputCPS = 14;
-    int durMinClique = 22;
-    int durMaxClique = 30;
-
-    int chanceDrop = 30;
-    int chanceSpike = 30;
-    int cpsDrop = 2;
-    int cpsSpike = 1;
-
-    int variacaoClique = 10;
-
-} configCauto;
-
+#include "utils.h"
 
 float randomizar(float min, float max) {
     static unsigned int seed = 0;
