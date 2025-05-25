@@ -6,6 +6,23 @@
 
 #include "utils.h"
 
+void init_config(configCauto *config) {
+    config->ativo = true;
+    config->clicarInventario = false;
+    config->quebrarBlocos = false;
+
+    config->inputCPS = 14;
+    config->durMinClique = 22;
+    config->durMaxClique = 33;
+
+    config->chanceDrop = 50;
+    config->chanceSpike = 50;
+    config->cpsDrop = 10;
+    config->cpsSpike = 10;
+
+    config->variacaoClique = 10;
+}
+
 float randomizar(float min, float max) {
     static unsigned int seed = 0;
     if (!seed) seed = GetTickCount() ^ GetCurrentProcessId();

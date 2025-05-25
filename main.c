@@ -4,13 +4,14 @@
 #include <windows.h>
 #include <time.h>
 
-#include "utils.h"
-#include "utils.c"
+#include "include/utils.h"
+#include "include/utils.c"
 
 int main() {
     configCauto config;
-    // init_config(&config);
+    init_config(&config);
 
+    // Configurações AutoClicker
     printf("CPS desejado: ");
     scanf("%d", &config.inputCPS);
 
@@ -47,7 +48,8 @@ int main() {
     printf("Clique 'B' para alternar o clique dentro do inventario.\n");
     printf("Clique 'N' para alternar o clique dentro do inventario.\n");
 
-    while (true) {
+    while (config.ativo) {
+        // Hotkey para alterar funcionalidades
         if (GetAsyncKeyState('B') & 0x8000) {
             config.clicarInventario = !config.clicarInventario;
             printf("Inventario: %s\n", config.clicarInventario ? "ON" : "OFF");
@@ -59,6 +61,7 @@ int main() {
             printf("Quebrar Blocos: %s\n", config.quebrarBlocos ? "ON" : "OFF");
             Sleep(200);
         }
+
         if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
             if (config.clicarInventario || !cursorVisivel()) {
                 float duracaoClique = randomizar(config.durMinClique, config.durMaxClique);
@@ -67,18 +70,16 @@ int main() {
 
                 if (cliqueRandomizado < 5) cliqueRandomizado = 5;
 
-                if(config.quebrarBlocos) {
-                    enviarClique(true);
-                    Sleep((int)cliqueRandomizado + (int)duracaoClique);
-                } else {
+                // Simula o clique com delays previamente randomizados
                     enviarClique(true);
                     Sleep((int)duracaoClique);
-                    enviarClique(false);
+                    if(!config.quebrarBlocos) {
+                        enviarClique(false);
+                    }
                     Sleep((int)cliqueRandomizado);
-                }
             }
         } else {
-            Sleep(1);
+            Sleep(1); // Reduz o uso da CPU
         }
     }
     return 0;
