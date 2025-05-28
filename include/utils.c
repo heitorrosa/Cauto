@@ -12,7 +12,7 @@ void init_config(configCauto *config) {
     config->clickInventory = false;
     config->breakBlocks = false;
 
-    config->inputCPS = 14;
+    config->inputCPS = 13;
     config->minDurationClick = 22;
     config->maxDurationClick = 33;
 

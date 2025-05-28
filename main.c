@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <windows.h>
 #include <time.h>
-
+#include <libwebsocket.h>
 
 #include "include/utils.h"
 #include "include/utils.c"
@@ -65,28 +65,28 @@ int main() {
 
     // const float CPS = 1000.0f / config.inputCPS;
 
-    printf("Press 'B' to toggle smart mode.\n");
-    printf("Press 'N' to toggle break blocks.\n");
-    printf("Press 'M' to toggle MC only mode.\n");
+    //printf("Press 'B' to toggle smart mode.\n");
+    //printf("Press 'N' to toggle break blocks.\n");
+    //printf("Press 'M' to toggle MC only mode.\n");
 
     while (config.active) {
-        if (GetAsyncKeyState('B') & 0x8000) {
-            config.clickInventory = !config.clickInventory;
-            printf("Smart Mode: %s\n", config.clickInventory ? "ON" : "OFF");
-            Sleep(200);
-        }
+        //if (GetAsyncKeyState('B') & 0x8000) {
+        //    config.clickInventory = !config.clickInventory;
+        //    printf("Smart Mode: %s\n", config.clickInventory ? "ON" : "OFF");
+        //    Sleep(200);
+        //}
 
-        if (GetAsyncKeyState('N') & 0x8000) {
-            config.breakBlocks = !config.breakBlocks;
-            printf("Break Blocks: %s\n", config.breakBlocks ? "ON" : "OFF");
-            Sleep(200);
-        }
+        //if (GetAsyncKeyState('N') & 0x8000) {
+        //    config.breakBlocks = !config.breakBlocks;
+        //    printf("Break Blocks: %s\n", config.breakBlocks ? "ON" : "OFF");
+        //    Sleep(200);
+        //}
 
-        if (GetAsyncKeyState('M') & 0x8000) {
-            config.mcOnly = !config.mcOnly;
-            printf("MC Only Mode: %s\n", config.mcOnly ? "ON" : "OFF");
-            Sleep(200);
-        }
+        //if (GetAsyncKeyState('M') & 0x8000) {
+        //    config.mcOnly = !config.mcOnly;
+        //    printf("MC Only Mode: %s\n", config.mcOnly ? "ON" : "OFF");
+        //    Sleep(200);
+        //}
 
         if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
             if (config.clickInventory || !visibleCursor()) {
@@ -124,6 +124,4 @@ int main() {
         }
     }
     return 0;
-
-    system("cls");
 }
