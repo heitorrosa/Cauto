@@ -10,7 +10,7 @@ void init_config(configCauto *config) {
     config->active = true;
     config->mcOnly = true;
     config->clickInventory = false;
-    config->breakBlocks = false;
+    config->breakBlocks = true;
 
     config->inputCPS = 13;
     config->minDurationClick = 22;
@@ -49,9 +49,10 @@ void sendClick(bool down) {
     POINT pos;
     GetCursorPos(&pos);
 
-    HWND window = GetForegroundWindow();
+    HWND currentWindow = GetForegroundWindow();
 
-    // FindWindowA(NULL, "javaw");
-    //GetForegroundWindow();
-    PostMessage(window, down ? WM_LBUTTONDOWN : WM_LBUTTONUP, MK_LBUTTON, MAKELPARAM(pos.x, pos.y));
+    HWND minecraftRecent = FindWindowA("GLFW30", NULL); //1.13 - Recent
+    HWND minecraftOld = FindWindowA("LWJGL", NULL); // Older -  1.12
+
+    PostMessage(currentWindow, down ? WM_LBUTTONDOWN : WM_LBUTTONUP, MK_LBUTTON, MAKELPARAM(pos.x, pos.y));
 }
