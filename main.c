@@ -3,7 +3,6 @@
 #include <stdbool.h>
 #include <windows.h>
 #include <time.h>
-
 // #include <libwebsockets.h>
 
 #include "include/utils.h"
