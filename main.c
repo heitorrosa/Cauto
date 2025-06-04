@@ -60,8 +60,9 @@ int main() {
         HWND currentWindow = GetForegroundWindow();
         HWND minecraftRecent = FindWindowA("GLFW30", NULL); //1.13 - Recent
         HWND minecraftOld = FindWindowA("LWJGL", NULL); // Older -  1.12
+        HWND minecraftBedrock = FindWindowA("ApplicationFrameWindow", NULL); // Bedrock Edition
 
-        if (config.mcOnly && currentWindow != minecraftRecent && currentWindow != minecraftOld) {
+        if (config.mcOnly && currentWindow != minecraftRecent && currentWindow != minecraftOld && currentWindow != minecraftBedrock) {
             Sleep(1);
         }
         else {
@@ -97,7 +98,7 @@ int main() {
             }
         
         }
-        
+
         } else {
             Sleep(1);
         }
