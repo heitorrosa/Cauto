@@ -37,7 +37,7 @@ bool visibleCursor(void) {
     
     if (!GetCursorInfo(&ci))
         return false;
-
+    
     HCURSOR handle = ci.hCursor;
     if ((handle > (HCURSOR)50000) && (handle < (HCURSOR)100000))
         return true;
@@ -49,10 +49,7 @@ void sendClick(bool down) {
     POINT pos;
     GetCursorPos(&pos);
 
-    HWND currentWindow = GetForegroundWindow();
+    HWND window = GetForegroundWindow();
 
-    HWND minecraftRecent = FindWindowA("GLFW30", NULL); //1.13 - Recent
-    HWND minecraftOld = FindWindowA("LWJGL", NULL); // Older -  1.12
-
-    PostMessage(currentWindow, down ? WM_LBUTTONDOWN : WM_LBUTTONUP, MK_LBUTTON, MAKELPARAM(pos.x, pos.y));
+    PostMessage(window, down ? WM_LBUTTONDOWN : WM_LBUTTONUP, MK_LBUTTON, MAKELPARAM(pos.x, pos.y));
 }

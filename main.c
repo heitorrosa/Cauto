@@ -20,8 +20,6 @@ int main() {
         return 1;
     }
 
-    fflush(stdin);
-
     printf("Select the minimum click duration (ms) / Default: 22ms: ");
     scanf("%f", &config.minDurationClick);
     if(config.minDurationClick < 10) {
@@ -43,7 +41,7 @@ int main() {
         return 1;
     }
 
-    printf("Amount of CPS in the DROP / Default: 10: ");
+    printf("Amount of CPS in the DROP / Default: 3: ");
     scanf("%d", &config.dropCPS);
 
     printf("CPS Spike chance (%%) / Default: 50%%: ");
@@ -53,42 +51,20 @@ int main() {
         return 1;
     }
 
-    printf("Amount of CPS in the SPIKE / Default: 10: ");
+    printf("Amount of CPS in the SPIKE / Default: 2: ");
     scanf("%d", &config.spikeCPS);
 
-    // printf("Selecione a variacao da duracao do clique (%%) / Recomendado: 10%%: ");
-    // scanf("%f", &config.variacaoClique);
-    //  if(config.variacaoClique < 0) {
-    //    printf("A variacao da duracao do clique deve ser maior que 0.\n");
-    //    return 1;
-    // }
-
-    // const float CPS = 1000.0f / config.inputCPS;
-
-    //printf("Press 'B' to toggle smart mode.\n");
-    //printf("Press 'N' to toggle break blocks.\n");
-    //printf("Press 'M' to toggle MC only mode.\n");
-
     while (config.active) {
-        //if (GetAsyncKeyState('B') & 0x8000) {
-        //    config.clickInventory = !config.clickInventory;
-        //    printf("Smart Mode: %s\n", config.clickInventory ? "ON" : "OFF");
-        //    Sleep(200);
-        //}
-
-        //if (GetAsyncKeyState('N') & 0x8000) {
-        //    config.breakBlocks = !config.breakBlocks;
-        //    printf("Break Blocks: %s\n", config.breakBlocks ? "ON" : "OFF");
-        //    Sleep(200);
-        //}
-
-        //if (GetAsyncKeyState('M') & 0x8000) {
-        //    config.mcOnly = !config.mcOnly;
-        //    printf("MC Only Mode: %s\n", config.mcOnly ? "ON" : "OFF");
-        //    Sleep(200);
-        //}
-
         if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
+
+        HWND currentWindow = GetForegroundWindow();
+        HWND minecraftRecent = FindWindowA("GLFW30", NULL); //1.13 - Recent
+        HWND minecraftOld = FindWindowA("LWJGL", NULL); // Older -  1.12
+
+        if (config.mcOnly && currentWindow != minecraftRecent && currentWindow != minecraftOld) {
+            Sleep(1);
+        }
+        else {
             if (config.clickInventory || !visibleCursor()) {
 
                 float durationClick = randomization(config.minDurationClick, config.maxDurationClick);
@@ -98,27 +74,30 @@ int main() {
 
                 if (randomChance < config.dropChance) {
                     modifiedCPS -= config.dropCPS;
-                    if (modifiedCPS < 1) modifiedCPS = 1; // Minimum CPS
-                } else if (randomChance < config.dropChance + config.spikeChance) {
+                }
+
+                if (modifiedCPS < 1) modifiedCPS = 1; // Minimum CPS
+                else if (randomChance < config.dropChance + config.spikeChance) {
                     modifiedCPS += config.spikeCPS;
                 }
 
                 float randomizedCPS = 1000.0f / modifiedCPS;
                 float randomizedClick = randomizedCPS - durationClick;
 
-                // float delayVariacao = randomizar(-(config.variacaoClique / 100.0f), (config.variacaoClique / 100.0f)) * CPS;
-                // float cliqueRandomizado = CPS - duracaoClique + delayVariacao;
-
                 if (randomizedClick < 5) randomizedClick = 5;
 
+                sendClick(true);
+                Sleep((int)durationClick);
 
-                    sendClick(true);
-                    Sleep((int)durationClick);
-                    if(!config.breakBlocks) {
-                        sendClick(false);
-                    }
-                    Sleep((int)randomizedClick);
+                if(!config.breakBlocks) {
+                    sendClick(false);
+                }
+
+                Sleep((int)randomizedClick);
             }
+        
+        }
+        
         } else {
             Sleep(1);
         }
