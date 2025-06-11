@@ -22,9 +22,19 @@ typedef struct configCauto {
     int spikeCPS;
 } configCauto;
 
+// Simple state for burst sequences
+typedef struct {
+    int remainingTicks;
+    int cpsModifier;
+    unsigned int randomSeed;
+} RandomState;
+
 void init_config(configCauto *config);
-float randomizar(float min, float max);
-bool cursorVisivel(void);
-void enviarClique(bool down);
+void init_random_state(RandomState *state);
+float randomization(float min, float max);
+float enhanced_randomization(float min, float max, RandomState *state);
+float calculate_cps_with_bursts(configCauto *config, RandomState *state);
+bool visibleCursor(void);
+void sendClick(bool down);
 
 #endif // UTILS_H

@@ -3,14 +3,16 @@
 #include <stdbool.h>
 #include <windows.h>
 #include <time.h>
-// #include <libwebsockets.h>
 
 #include "include/utils.h"
 #include "include/utils.c"
 
 int main() {
     configCauto config;
+    RandomState randState;
+    
     init_config(&config);
+    init_random_state(&randState);
 
     printf("Desired CPS: ");
     scanf("%d", &config.inputCPS);
@@ -68,19 +70,11 @@ int main() {
         else {
             if (config.clickInventory || !visibleCursor()) {
 
-                float durationClick = randomization(config.minDurationClick, config.maxDurationClick);
+                // Use enhanced randomization for click duration
+                float durationClick = enhanced_randomization(config.minDurationClick, config.maxDurationClick, &randState);
 
-                float modifiedCPS = config.inputCPS;
-                float randomChance = randomization(0, 100);
-
-                if (randomChance < config.dropChance) {
-                    modifiedCPS -= config.dropCPS;
-                }
-
-                if (modifiedCPS < 1) modifiedCPS = 1; // Minimum CPS
-                else if (randomChance < config.dropChance + config.spikeChance) {
-                    modifiedCPS += config.spikeCPS;
-                }
+                // Calculate CPS with burst sequences using only Spikes and Drops
+                float modifiedCPS = calculate_cps_with_bursts(&config, &randState);
 
                 float randomizedCPS = 1000.0f / modifiedCPS;
                 float randomizedClick = randomizedCPS - durationClick;
