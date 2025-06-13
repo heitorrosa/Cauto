@@ -67,6 +67,7 @@ int main() {
         if (config.mcOnly && currentWindow != minecraftRecent && currentWindow != minecraftOld && currentWindow != minecraftBedrock) {
             Sleep(1);
         }
+        
         else {
             if (config.clickInventory || !visibleCursor()) {
 
