@@ -15,7 +15,7 @@ int main() {
     init_random_state(&randState);
 
     printf("Desired CPS: ");
-    scanf("%d", &config.inputCPS);
+    scanf_s("%d", &config.inputCPS);
 
     if(config.inputCPS < 1) {
         printf("Your CPS needs to be a value higher than 0.\n");
@@ -23,38 +23,38 @@ int main() {
     }
 
     printf("Select the minimum click duration (ms) / Default: 22ms: ");
-    scanf("%f", &config.minDurationClick);
+    scanf_s("%f", &config.minDurationClick);
     if(config.minDurationClick < 10) {
         printf("The click duration must be greater than 10.\n");
         return 1;
     }
 
     printf("Select the maximum click duration (ms) / Default: 30ms: ");
-    scanf("%f", &config.maxDurationClick);
+    scanf_s("%f", &config.maxDurationClick);
     if(config.maxDurationClick < config.minDurationClick) {
         printf("The maximum click duration must be greater than the minimum.\n");
         return 1;
     }
 
     printf("CPS Drop chance (%%) / Default: 50%%: ");
-    scanf("%f", &config.dropChance);
+    scanf_s("%f", &config.dropChance);
     if(config.dropChance < 0 || config.dropChance > 100) {
         printf("The drop chance must be between 0 and 100.\n");
         return 1;
     }
 
     printf("Amount of CPS in the DROP / Default: 3: ");
-    scanf("%d", &config.dropCPS);
+    scanf_s("%d", &config.dropCPS);
 
     printf("CPS Spike chance (%%) / Default: 50%%: ");
-    scanf("%f", &config.spikeChance);
+    scanf_s("%f", &config.spikeChance);
     if(config.spikeChance < 0 || config.spikeChance > 100) {
         printf("The spike chance must be between 0 and 100.\n");
         return 1;
     }
 
     printf("Amount of CPS in the SPIKE / Default: 2: ");
-    scanf("%d", &config.spikeCPS);
+    scanf_s("%d", &config.spikeCPS);
 
     while (config.active) {
         if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
@@ -95,7 +95,7 @@ int main() {
         }
 
         } else {
-            Sleep(1);
+            Sleep(1 );
         }
     }
     return 0;

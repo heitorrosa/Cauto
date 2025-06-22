@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Site BuildName="Win32-MSBuild"
+	BuildStamp="20250622-1751-Experimental"
+	Name="HEITOR-W11"
+	Generator="ctest-4.0.3"
+	CompilerName="cl.exe"
+	CompilerVersion=""
+	OSName="Windows"
+	Hostname="HEITOR-W11"
+	OSRelease=" Professional"
+	OSVersion=" (Build 26100)"
+	OSPlatform="AMD64"
+	Is64Bits="1"
+	VendorString="GenuineIntel"
+	VendorID="Intel Corporation"
+	FamilyID="6"
+	ModelID="15"
+	ModelName=""
+	ProcessorCacheSize="-1"
+	NumberOfLogicalCPU="10"
+	NumberOfPhysicalCPU="10"
+	TotalVirtualMemory="37730"
+	TotalPhysicalMemory="32610"
+	LogicalProcessorsPerPhysical="1"
+	ProcessorClockFrequency="2893"
+	>
+	<Testing>
+		<StartDateTime>Jun 22 14:51 E. South America Standard Time</StartDateTime>
+		<StartTestTime>1750614670</StartTestTime>
+		<TestList/>
+		<EndDateTime>Jun 22 14:51 E. South America Standard Time</EndDateTime>
+		<EndTestTime>1750614670</EndTestTime>
+		<ElapsedMinutes>0</ElapsedMinutes>
+	</Testing>
+</Site>
