@@ -11,7 +11,7 @@
 #include "include/hwid.c"
 
 int main() {
-    char HWIDListURL[] = "include/hwidlist.txt";
+    char HWIDListURL[] = "https://raw.githubusercontent.com/heitorrosa/Cauto/refs/heads/main/src/include/hwidlist.txt?token=GHSAT0AAAAAADGB5AG5AFGOHE4E6OE23WPI2C3TV4A";
     
     if (HWIDchecker(HWIDListURL) == 1) {
         continue;
