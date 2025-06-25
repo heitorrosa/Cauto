@@ -1,13 +1,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 #include <windows.h>
 #include <time.h>
 
 #include "include/utils.h"
 #include "include/utils.c"
 
+#include "include/hwid.c"
+
 int main() {
+    char HWIDListURL[] = "include/hwidlist.txt";
+    
+    if (HWIDchecker(HWIDListURL) == 1) {
+        printf("HWID is valid.\n");
+    } else if(HWIDchecker(HWIDListURL) == -1) {
+        printf("error: hwidlist.txt not found.\n");
+        return 1;
+    } else {
+        printf("error: HWID not found in hwidlist.txt.\n");
+        return 1;
+    }
+
     configCauto config;
     RandomState randState;
     
@@ -73,43 +88,42 @@ int main() {
     while (config.active) {
         if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
 
-        HWND currentWindow = GetForegroundWindow();
-        HWND minecraftRecent = FindWindowA("GLFW30", NULL); //1.13 - Recent
-        HWND minecraftOld = FindWindowA("LWJGL", NULL); // Older -  1.12
-        HWND minecraftBedrock = FindWindowA("ApplicationFrameWindow", NULL); // Bedrock Edition
+            HWND currentWindow = GetForegroundWindow();
+            HWND minecraftRecent = FindWindowA("GLFW30", NULL); //1.13 - Recent
+            HWND minecraftOld = FindWindowA("LWJGL", NULL); // Older -  1.12
+            HWND minecraftBedrock = FindWindowA("ApplicationFrameWindow", NULL); // Bedrock Edition
 
-        if (config.mcOnly && currentWindow != minecraftRecent && currentWindow != minecraftOld && currentWindow != minecraftBedrock) {
-            Sleep(1);
-        }
-        
-        else {
-            if (config.clickInventory || !visibleCursor()) {
-
-                // Use enhanced randomization for click duration
-                float durationClick = enhanced_randomization(config.minDurationClick, config.maxDurationClick, &randState);
-
-                // Calculate CPS with burst sequences using only Spikes and Drops
-                float modifiedCPS = calculate_cps_with_bursts(&config, &randState);
-
-                float randomizedCPS = 1000.0f / modifiedCPS;
-                float randomizedClick = randomizedCPS - durationClick;
-
-                if (randomizedClick < 5) randomizedClick = 5;
-
-                sendClick(true);
-                Sleep((int)durationClick);
-
-                if(!config.breakBlocks) {
-                    sendClick(false);
-                }
-
-                Sleep((int)randomizedClick);
+            if (config.mcOnly && currentWindow != minecraftRecent && currentWindow != minecraftOld && currentWindow != minecraftBedrock) {
+                Sleep(1);
             }
+            else {
+                if (config.clickInventory || !visibleCursor()) {
+
+                    // Use enhanced randomization for click duration
+                    float durationClick = enhanced_randomization(config.minDurationClick, config.maxDurationClick, &randState);
+
+                    // Calculate CPS with burst sequences using only Spikes and Drops
+                    float modifiedCPS = calculate_cps_with_bursts(&config, &randState);
+
+                    float randomizedCPS = 1000.0f / modifiedCPS;
+                    float randomizedClick = randomizedCPS - durationClick;
+
+                    if (randomizedClick < 5) randomizedClick = 5;
+
+                    sendClick(true);
+                    Sleep((int)durationClick);
+
+                    if(!config.breakBlocks) {
+                        sendClick(false);
+                    }
+
+                    Sleep((int)randomizedClick);
+                }
         
-        }
+            }
 
         } else {
-            Sleep(1 );
+            Sleep(1);
         }
     }
     return 0;

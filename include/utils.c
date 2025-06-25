@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 #include <windows.h>
 #include <time.h>
 
@@ -16,8 +17,8 @@ void init_config(configCauto *config) {
     config->minDurationClick = 22;
     config->maxDurationClick = 33;
 
-    config->dropChance = 50;
-    config->spikeChance = 50;
+    config->dropChance = 45;
+    config->spikeChance = 20;
     config->dropCPS = 3;
     config->spikeCPS = 2;
 }
