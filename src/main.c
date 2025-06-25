@@ -14,7 +14,7 @@ int main() {
     char HWIDListURL[] = "include/hwidlist.txt";
 
     if(HWIDchecker(HWIDListURL) == -1) {
-        printf("error: The HWID did not load\n");
+        printf("error: The HWID list did not load\n");
         return 1;
     } else if (HWIDchecker(HWIDListURL) == 0) {
         printf("error: HWID not found in the HWID list.\n");
@@ -22,7 +22,7 @@ int main() {
         char currentHWID[64];
         getHWID(currentHWID, sizeof(currentHWID));
 
-        printf("your hwid is: %s\n", currentHWID);
+        printf("Your hwid is: %s\n", currentHWID);
         return 1;
     } else {
         printf("HWID found in the list, continuing...\n");
@@ -32,20 +32,21 @@ int main() {
     RandomState randState;
     
     init_config(&config);
-    init_random_state(&randState);
+    init_randomState(&randState);
 
     printf("\n=== RECOMMENDED SETTINGS ===\n");
     printf("For 13 CPS:\n");
-    printf("  - Drop Chance: 35%% (moderate frequency)\n");
+    printf("  - Drop Chance: 25%% (frequent, natural drops)\n");
     printf("  - Drop Amount: 2 CPS (subtle reduction)\n");
-    printf("  - Spike Chance: 25%% (occasional bursts)\n");
+    printf("  - Spike Chance: 15%% (occasional bursts)\n");
     printf("  - Spike Amount: 1 CPS (gentle increase)\n");
     printf("\nFor 18 CPS:\n");
-    printf("  - Drop Chance: 45%% (more frequent drops)\n");
+    printf("  - Drop Chance: 30%% (very frequent drops)\n");
     printf("  - Drop Amount: 3 CPS (noticeable reduction)\n");
-    printf("  - Spike Chance: 20%% (controlled bursts)\n");
+    printf("  - Spike Chance: 12%% (controlled bursts)\n");
     printf("  - Spike Amount: 2 CPS (moderate increase)\n");
-    printf("\nThese settings provide natural-looking patterns that avoid detection.\n");
+    printf("\nNOTE: Drop frequency automatically increases during long periods\n");
+    printf("of normal clicking to create more natural human-like patterns.\n");
     printf("================================\n\n");
 
     printf("Desired CPS: ");
@@ -93,39 +94,38 @@ int main() {
     while (config.active) {
         if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
 
-            HWND currentWindow = GetForegroundWindow();
-            HWND minecraftRecent = FindWindowA("GLFW30", NULL); //1.13 - Recent
-            HWND minecraftOld = FindWindowA("LWJGL", NULL); // Older -  1.12
-            HWND minecraftBedrock = FindWindowA("ApplicationFrameWindow", NULL); // Bedrock Edition
+        HWND currentWindow = GetForegroundWindow();
+        HWND minecraftRecent = FindWindowA("GLFW30", NULL); //1.13 - Recent
+        HWND minecraftOld = FindWindowA("LWJGL", NULL); // Older -  1.12
+        HWND minecraftBedrock = FindWindowA("ApplicationFrameWindow", NULL); // Bedrock Edition
 
-            if (config.mcOnly && currentWindow != minecraftRecent && currentWindow != minecraftOld && currentWindow != minecraftBedrock) {
-                Sleep(1);
-            }
-            else {
-                if (config.clickInventory || !visibleCursor()) {
-
-                    // Use enhanced randomization for click duration
-                    float durationClick = enhanced_randomization(config.minDurationClick, config.maxDurationClick, &randState);
-
-                    // Calculate CPS with burst sequences using only Spikes and Drops
-                    float modifiedCPS = calculate_cps_with_bursts(&config, &randState);
-
-                    float randomizedCPS = 1000.0f / modifiedCPS;
-                    float randomizedClick = randomizedCPS - durationClick;
-
-                    if (randomizedClick < 5) randomizedClick = 5;
-
-                    sendClick(true);
-                    Sleep((int)durationClick);
-
-                    if(!config.breakBlocks) {
-                        sendClick(false);
-                    }
-
-                    Sleep((int)randomizedClick);
-                }
+        if (config.mcOnly && currentWindow != minecraftRecent && currentWindow != minecraftOld && currentWindow != minecraftBedrock) {
+            Sleep(1);
+        }
         
+        else {
+            if (config.clickInventory || !visibleCursor()) {
+
+                float durationClick = randomization(config.minDurationClick, config.maxDurationClick, &randState);
+
+                float modifiedCPS = cpsWithBursts(&config, &randState);
+
+                float randomizedCPS = 1000.0f / modifiedCPS;
+                float randomizedClick = randomizedCPS - durationClick;
+
+                if (randomizedClick < 5) randomizedClick = 5;
+
+                sendClick(true);
+                Sleep((int)durationClick);
+
+                if(!config.breakBlocks) {
+                    sendClick(false);
+                }
+
+                Sleep((int)randomizedClick);
             }
+        
+        }
 
         } else {
             Sleep(1);
