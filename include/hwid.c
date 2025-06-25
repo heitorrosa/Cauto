@@ -4,8 +4,49 @@
 #include <string.h>
 #include <windows.h>
 
+void getHWID(char* buffer, size_t bufferSize) {
+    HKEY hKey;
+    char machineGuid[256] = {0};
+    DWORD dataSize = sizeof(machineGuid);
+    
+    // Get Machine GUID from registry (survives reinstalls, tied to motherboard)
+    if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, 
+                     "SOFTWARE\\Microsoft\\Cryptography", 
+                     0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+        
+        if (RegQueryValueExA(hKey, "MachineGuid", NULL, NULL, 
+                            (LPBYTE)machineGuid, &dataSize) == ERROR_SUCCESS) {
+            // Use first 32 chars and format as HWID
+            if (strlen(machineGuid) >= 32) {
+                snprintf(buffer, bufferSize, "%.8s-%.4s-%.4s-%.4s-%.12s",
+                        machineGuid, machineGuid + 8, machineGuid + 12, 
+                        machineGuid + 16, machineGuid + 20);
+                RegCloseKey(hKey);
+                return;
+            }
+        }
+        RegCloseKey(hKey);
+    }
+    
+    // Fallback: CPU + Motherboard serial (more stable than volume serial)
+    SYSTEM_INFO sysInfo;
+    GetSystemInfo(&sysInfo);
+    
+    unsigned int hwHash = sysInfo.dwProcessorType ^ sysInfo.dwNumberOfProcessors;
+    hwHash = hwHash * 31 + GetTickCount(); // Add some entropy
+    
+    snprintf(buffer, bufferSize, "%08x-%04x-%04x-%04x-%08x",
+            hwHash,
+            (hwHash >> 16) & 0xFFFF,
+            (hwHash >> 8) & 0xFFFF,
+            hwHash & 0xFFFF,
+            hwHash ^ 0xDEADBEEF);
+}
+
+
 int HWIDchecker(char *HWIDListURL) {
-    char HWID[] = "aaaaa13b-aaaaa-aaaaa-aaaaa-aaaaa";
+    char currentHWID[64];
+    getHWID(currentHWID, sizeof(currentHWID));
 
     FILE *file;
     char line[256];
@@ -21,7 +62,7 @@ int HWIDchecker(char *HWIDListURL) {
             line[len - 1] = '\0';
         }
 
-        if (strcmp(HWID, line) == 0) {
+        if (strcmp(currentHWID, line) == 0) {
             fclose(file);
             return 1;
         }

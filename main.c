@@ -14,12 +14,17 @@ int main() {
     char HWIDListURL[] = "include/hwidlist.txt";
     
     if (HWIDchecker(HWIDListURL) == 1) {
-        printf("HWID is valid.\n");
+        continue;
     } else if(HWIDchecker(HWIDListURL) == -1) {
-        printf("error: hwidlist.txt not found.\n");
+        printf("error: The HWID did not load\n");
         return 1;
     } else {
-        printf("error: HWID not found in hwidlist.txt.\n");
+        printf("error: HWID not found in the HWID list.\n");
+
+        char currentHWID[64];
+        getHWID(currentHWID, sizeof(currentHWID));
+
+        printf("your hwid is: %s\n", currentHWID);
         return 1;
     }
 
