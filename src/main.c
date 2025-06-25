@@ -11,14 +11,12 @@
 #include "include/hwid.c"
 
 int main() {
-    char HWIDListURL[] = "https://raw.githubusercontent.com/heitorrosa/Cauto/refs/heads/main/src/include/hwidlist.txt?token=GHSAT0AAAAAADGB5AG5AFGOHE4E6OE23WPI2C3TV4A";
-    
-    if (HWIDchecker(HWIDListURL) == 1) {
-        continue;
-    } else if(HWIDchecker(HWIDListURL) == -1) {
+    char HWIDListURL[] = "include/hwidlist.txt";
+
+    if(HWIDchecker(HWIDListURL) == -1) {
         printf("error: The HWID did not load\n");
         return 1;
-    } else {
+    } else if (HWIDchecker(HWIDListURL) == 0) {
         printf("error: HWID not found in the HWID list.\n");
 
         char currentHWID[64];
@@ -26,6 +24,8 @@ int main() {
 
         printf("your hwid is: %s\n", currentHWID);
         return 1;
+    } else {
+        printf("HWID found in the list, continuing...\n");
     }
 
     configCauto config;
