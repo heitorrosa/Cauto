@@ -1458,6 +1458,18 @@
 			"value" : ""
 		},
 		{
+			"name" : "VCPKG_APPLOCAL_DEPS",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "No help, variable specified on the command line."
+				}
+			],
+			"type" : "UNINITIALIZED",
+			"value" : "ON"
+		},
+		{
 			"name" : "VCPKG_TARGET_TRIPLET",
 			"properties" : 
 			[
@@ -1467,7 +1479,19 @@
 				}
 			],
 			"type" : "UNINITIALIZED",
-			"value" : ""
+			"value" : "-static"
+		},
+		{
+			"name" : "X_VCPKG_APPLOCAL_DEPS_INSTALL",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "No help, variable specified on the command line."
+				}
+			],
+			"type" : "UNINITIALIZED",
+			"value" : "ON"
 		}
 	],
 	"kind" : "cache",

@@ -12,8 +12,18 @@
     },
     "C_Cpp.errorSquiggles": "disabled",
     "cmake.configureArgs": [
-        "-DVCPKG_TARGET_TRIPLET="
+        "-DVCPKG_APPLOCAL_DEPS=ON",
+        "-DX_VCPKG_APPLOCAL_DEPS_INSTALL=ON",
+        "-DVCPKG_TARGET_TRIPLET=-static"
     ],
-    "vcpkg.target.useStaticLib": false,
-    "vcpkg.target.defaultTriplet": ""
+    "vcpkg.target.useStaticLib": true,
+    "vcpkg.target.defaultTriplet": "-static",
+    "vcpkg.general.enable": true,
+    "vcpkg.target.hostTriplet": "x64-windows",
+    "cmake.configureSettings": {
+        "CMAKE_TOOLCHAIN_FILE": "C:/Users/Administrator/vcpkg/scripts/buildsystems/vcpkg.cmake"
+    },
+    "vcpkg.target.installDependencies": true,
+    "vcpkg.target.preferSystemLibs": false,
+    "vcpkg.target.useManifest": false
 }

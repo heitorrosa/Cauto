@@ -14,6 +14,20 @@ int main() {
     init_config(&config);
     init_random_state(&randState);
 
+    printf("\n=== RECOMMENDED SETTINGS ===\n");
+    printf("For 13 CPS:\n");
+    printf("  - Drop Chance: 35%% (moderate frequency)\n");
+    printf("  - Drop Amount: 2 CPS (subtle reduction)\n");
+    printf("  - Spike Chance: 25%% (occasional bursts)\n");
+    printf("  - Spike Amount: 1 CPS (gentle increase)\n");
+    printf("\nFor 18 CPS:\n");
+    printf("  - Drop Chance: 45%% (more frequent drops)\n");
+    printf("  - Drop Amount: 3 CPS (noticeable reduction)\n");
+    printf("  - Spike Chance: 20%% (controlled bursts)\n");
+    printf("  - Spike Amount: 2 CPS (moderate increase)\n");
+    printf("\nThese settings provide natural-looking patterns that avoid detection.\n");
+    printf("================================\n\n");
+
     printf("Desired CPS: ");
     scanf_s("%d", &config.inputCPS);
 
@@ -22,38 +36,38 @@ int main() {
         return 1;
     }
 
-    printf("Select the minimum click duration (ms) / Default: 22ms: ");
+    printf("Select the minimum click duration (ms): ");
     scanf_s("%f", &config.minDurationClick);
     if(config.minDurationClick < 10) {
         printf("The click duration must be greater than 10.\n");
         return 1;
     }
 
-    printf("Select the maximum click duration (ms) / Default: 30ms: ");
+    printf("Select the maximum click duration (ms): ");
     scanf_s("%f", &config.maxDurationClick);
     if(config.maxDurationClick < config.minDurationClick) {
         printf("The maximum click duration must be greater than the minimum.\n");
         return 1;
     }
 
-    printf("CPS Drop chance (%%) / Default: 50%%: ");
+    printf("CPS Drop chance (%%): ");
     scanf_s("%f", &config.dropChance);
     if(config.dropChance < 0 || config.dropChance > 100) {
         printf("The drop chance must be between 0 and 100.\n");
         return 1;
     }
 
-    printf("Amount of CPS in the DROP / Default: 3: ");
+    printf("Amount of CPS in the DROP: ");
     scanf_s("%d", &config.dropCPS);
 
-    printf("CPS Spike chance (%%) / Default: 50%%: ");
+    printf("CPS Spike chance (%%): ");
     scanf_s("%f", &config.spikeChance);
     if(config.spikeChance < 0 || config.spikeChance > 100) {
         printf("The spike chance must be between 0 and 100.\n");
         return 1;
     }
 
-    printf("Amount of CPS in the SPIKE / Default: 2: ");
+    printf("Amount of CPS in the SPIKE: ");
     scanf_s("%d", &config.spikeCPS);
 
     while (config.active) {
