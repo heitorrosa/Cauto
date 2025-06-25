@@ -95,9 +95,9 @@ int main() {
         if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
 
         HWND currentWindow = GetForegroundWindow();
-        HWND minecraftRecent = FindWindowA("GLFW30", NULL); //1.13 - Recent
-        HWND minecraftOld = FindWindowA("LWJGL", NULL); // Older -  1.12
-        HWND minecraftBedrock = FindWindowA("ApplicationFrameWindow", NULL); // Bedrock Edition
+        HWND minecraftRecent = FindWindowA("GLFW30", NULL);
+        HWND minecraftOld = FindWindowA("LWJGL", NULL);
+        HWND minecraftBedrock = FindWindowA("ApplicationFrameWindow", NULL);
 
         if (config.mcOnly && currentWindow != minecraftRecent && currentWindow != minecraftOld && currentWindow != minecraftBedrock) {
             Sleep(1);
@@ -106,12 +106,23 @@ int main() {
         else {
             if (config.clickInventory || !visibleCursor()) {
 
-                float durationClick = randomization(config.minDurationClick, config.maxDurationClick, &randState);
+                // Use adaptive randomization for click duration
+                float durationClick = adaptiveRandomization(
+                    (config.minDurationClick + config.maxDurationClick) / 2.0f,
+                    (config.maxDurationClick - config.minDurationClick) / 4.0f,
+                    &randState
+                );
+                
+                // Ensure bounds
+                if (durationClick < config.minDurationClick) durationClick = config.minDurationClick;
+                if (durationClick > config.maxDurationClick) durationClick = config.maxDurationClick;
 
                 float modifiedCPS = cpsWithBursts(&config, &randState);
-
-                float randomizedCPS = 1000.0f / modifiedCPS;
-                float randomizedClick = randomizedCPS - durationClick;
+                float baseInterval = 1000.0f / modifiedCPS;
+                
+                // Add jitter to prevent perfect timing
+                float jitter = calculateJitter(&randState);
+                float randomizedClick = baseInterval - durationClick + jitter;
 
                 if (randomizedClick < 5) randomizedClick = 5;
 
