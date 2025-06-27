@@ -3,6 +3,8 @@ project(Cauto VERSION 0.1.0 LANGUAGES C)
 
 add_executable(Cauto src/main.c)
 
+target_link_libraries(Cauto winmm)
+
 include(CTest)
 enable_testing()
 

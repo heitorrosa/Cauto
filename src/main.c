@@ -11,23 +11,23 @@
 #include "include/hwid.c"
 
 int main() {
-    char HWIDListURL[] = "resources/hwidlist.txt";
-    char pathSoundClicks;
+    // char HWIDListURL[] = "resources/hwidlist.txt";
+    char pathSoundClicks[256] = {0}; // Changed from pointer to array
 
-    if(HWIDchecker(HWIDListURL) == -1) {
-        printf("error: The HWID list did not load\n");
-        return 1;
-    } else if (HWIDchecker(HWIDListURL) == 0) {
-        printf("error: HWID not found in the HWID list.\n");
+    // if(HWIDchecker(HWIDListURL) == -1) {
+    //     printf("error: The HWID list did not load\n");
+    //     return 1;
+    // } else if (HWIDchecker(HWIDListURL) == 0) {
+    //     printf("error: HWID not found in the HWID list.\n");
 
-        char currentHWID[64];
-        getHWID(currentHWID, sizeof(currentHWID));
+    //     char currentHWID[64];
+    //     getHWID(currentHWID, sizeof(currentHWID));
 
-        printf("Your hwid is: %s\n", currentHWID);
-        return 1;
-    } else {
-        printf("HWID found in the list, continuing...\n");
-    }
+    //     printf("Your hwid is: %s\n", currentHWID);
+    //     return 1;
+    // } else {
+    //     printf("HWID found in the list, continuing...\n");
+    // }
 
     configCauto config;
     RandomState randState;
@@ -95,9 +95,15 @@ int main() {
     fflush(stdin);
 
     printf("Soundclicks path (leave empty for disabling it): ");
-    scanf_s(" %s", &pathSoundClicks);
+    scanf_s("%255s", pathSoundClicks, sizeof(pathSoundClicks));
 
-    printf("%s", pathSoundClicks);
+    if (strlen(pathSoundClicks) > 0) {
+        config.soundClicks = true;
+        printf("Sound clicks enabled with path: %s\n", pathSoundClicks);
+    } else {
+        config.soundClicks = false;
+        printf("Sound clicks disabled\n");
+    }
     
     while (true) {
         if (GetAsyncKeyState(VK_LBUTTON) & 0x8000 && config.leftActive) {
@@ -150,7 +156,7 @@ int main() {
 
         }
         else {
-            PlaySoundA(NULL, NULL, SND_PURGE); // Stop any previous sound
+            PlaySoundA(NULL, NULL, SND_PURGE);
             Sleep(1);
         }
 
