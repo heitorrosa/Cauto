@@ -9,14 +9,15 @@
 #include "utils.h"
 
 void init_config(configCauto *config) {
-    config->active = true;
+    config->leftActive = true;
     config->mcOnly = true;
     config->clickInventory = false;
-    config->breakBlocks = false;
+    config->breakBlocks = true;
+    config->soundClicks = true;
 
     config->inputCPS = 13;
     config->minDurationClick = 22;
-    config->maxDurationClick = 33;
+    config->maxDurationClick = 30;
 
     config->dropChance = 50;
     config->spikeChance = 50;
@@ -210,7 +211,7 @@ float cpsWithBursts(configCauto *config, RandomState *state) {
     return finalCPS;
 }
 
-bool visibleCursor(void) {
+bool cursorVisible(void) {
     CURSORINFO ci;
     ci.cbSize = sizeof(CURSORINFO);
     
@@ -224,11 +225,9 @@ bool visibleCursor(void) {
     return false;
 }
 
-void sendClick(bool down) {
+void sendLeftClickDown(bool down) {
     POINT pos;
     GetCursorPos(&pos);
 
-    HWND window = GetForegroundWindow();
-
-    PostMessage(window, down ? WM_LBUTTONDOWN : WM_LBUTTONUP, MK_LBUTTON, MAKELPARAM(pos.x, pos.y));
+    PostMessageA(GetForegroundWindow(), down ? WM_LBUTTONDOWN : WM_LBUTTONUP, MK_LBUTTON, MAKELPARAM(pos.x, pos.y));
 }

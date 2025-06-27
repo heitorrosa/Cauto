@@ -7,10 +7,11 @@
 #include <windows.h>
 
 typedef struct configCauto {
-    bool active;
+    bool leftActive;
     bool mcOnly;
     bool clickInventory;
     bool breakBlocks;
+    bool soundClicks;
 
     int inputCPS;
     float minDurationClick;
@@ -60,7 +61,7 @@ float gaussianRandom(GaussianState *gauss, RandomState *state);
 float adaptiveRandomization(float base, float variance, RandomState *state);
 float cpsWithBursts(configCauto *config, RandomState *state);
 float calculateJitter(RandomState *state);
-bool visibleCursor(void);
-void sendClick(bool down);
+bool cursorVisible(void);
+void sendLeftClickDown(bool down);
 
 #endif // UTILS_H

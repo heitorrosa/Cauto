@@ -11,7 +11,8 @@
 #include "include/hwid.c"
 
 int main() {
-    char HWIDListURL[] = "include/hwidlist.txt";
+    char HWIDListURL[] = "resources/hwidlist.txt";
+    char pathSoundClicks;
 
     if(HWIDchecker(HWIDListURL) == -1) {
         printf("error: The HWID list did not load\n");
@@ -91,56 +92,68 @@ int main() {
     printf("Amount of CPS in the SPIKE: ");
     scanf_s("%d", &config.spikeCPS);
 
-    while (config.active) {
-        if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
+    fflush(stdin);
 
-        HWND currentWindow = GetForegroundWindow();
-        HWND minecraftRecent = FindWindowA("GLFW30", NULL);
-        HWND minecraftOld = FindWindowA("LWJGL", NULL);
-        HWND minecraftBedrock = FindWindowA("ApplicationFrameWindow", NULL);
+    printf("Soundclicks path (leave empty for disabling it): ");
+    scanf_s(" %s", &pathSoundClicks);
 
-        if (config.mcOnly && currentWindow != minecraftRecent && currentWindow != minecraftOld && currentWindow != minecraftBedrock) {
-            Sleep(1);
-        }
-        
-        else {
-            if (config.clickInventory || !visibleCursor()) {
+    printf("%s", pathSoundClicks);
+    
+    while (true) {
+        if (GetAsyncKeyState(VK_LBUTTON) & 0x8000 && config.leftActive) {
 
-                // Use adaptive randomization for click duration
-                float durationClick = adaptiveRandomization(
-                    (config.minDurationClick + config.maxDurationClick) / 2.0f,
-                    (config.maxDurationClick - config.minDurationClick) / 4.0f,
-                    &randState
-                );
-                
-                // Ensure bounds
-                if (durationClick < config.minDurationClick) durationClick = config.minDurationClick;
-                if (durationClick > config.maxDurationClick) durationClick = config.maxDurationClick;
+            HWND currentWindow = GetForegroundWindow();
+            HWND minecraftRecent = FindWindowA("GLFW30", NULL);
+            HWND minecraftOld = FindWindowA("LWJGL", NULL);
+            HWND minecraftBedrock = FindWindowA("ApplicationFrameWindow", NULL);
 
-                float modifiedCPS = cpsWithBursts(&config, &randState);
-                float baseInterval = 1000.0f / modifiedCPS;
-                
-                // Add jitter to prevent perfect timing
-                float jitter = calculateJitter(&randState);
-                float randomizedClick = baseInterval - durationClick + jitter;
+            if (config.mcOnly && currentWindow != minecraftRecent && currentWindow != minecraftOld && currentWindow != minecraftBedrock) {
 
-                if (randomizedClick < 5) randomizedClick = 5;
-
-                sendClick(true);
-                Sleep((int)durationClick);
-
-                if(!config.breakBlocks) {
-                    sendClick(false);
-                }
-
-                Sleep((int)randomizedClick);
             }
-        
-        }
+            else {
+                    if (config.clickInventory || !cursorVisible()) {
 
-        } else {
+                        // Use adaptive randomization for click duration
+                        float durationClick = adaptiveRandomization(
+                            (config.minDurationClick + config.maxDurationClick) / 2.0f,
+                            (config.maxDurationClick - config.minDurationClick) / 4.0f,
+                            &randState
+                        );
+                        
+                        // Ensure bounds
+                        if (durationClick < config.minDurationClick) durationClick = config.minDurationClick;
+                        if (durationClick > config.maxDurationClick) durationClick = config.maxDurationClick;
+
+                        float modifiedCPS = cpsWithBursts(&config, &randState);
+                        float baseInterval = 1000.0f / modifiedCPS;
+                        
+                        // Add jitter to prevent perfect timing
+                        float jitter = calculateJitter(&randState);
+                        float randomizedClick = baseInterval - durationClick + jitter;
+
+                        if (randomizedClick < 5) randomizedClick = 5;
+
+                        if(config.soundClicks) {
+                            PlaySoundA((char *)pathSoundClicks, NULL, SND_NOSTOP | SND_ASYNC | SND_FILENAME | SND_ALIAS);
+                        }
+
+                        sendLeftClickDown(true);
+                        Sleep((int)durationClick);
+
+                        if(!config.breakBlocks) {
+                            sendLeftClickDown(false);
+                        }
+
+                        Sleep((int)randomizedClick);
+                    }
+            }
+
+        }
+        else {
+            PlaySoundA(NULL, NULL, SND_PURGE); // Stop any previous sound
             Sleep(1);
         }
+
     }
     return 0;
 }
