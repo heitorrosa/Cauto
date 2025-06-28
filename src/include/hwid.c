@@ -51,8 +51,8 @@ int HWIDchecker(char *HWIDListURL) {
     FILE *file;
     char line[256];
 
-    file = fopen(HWIDListURL, "r");
-    if (file == NULL) {
+    errno_t err = fopen_s(&file, HWIDListURL, "r");
+    if (err != 0 || file == NULL) {
         return -1;
     }
 

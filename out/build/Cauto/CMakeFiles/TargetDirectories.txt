@@ -1,9 +1,4 @@
 D:/Repositories/Cauto/out/build/Cauto/CMakeFiles/Cauto.dir
-D:/Repositories/Cauto/out/build/Cauto/CMakeFiles/Experimental.dir
-D:/Repositories/Cauto/out/build/Cauto/CMakeFiles/Nightly.dir
-D:/Repositories/Cauto/out/build/Cauto/CMakeFiles/Continuous.dir
-D:/Repositories/Cauto/out/build/Cauto/CMakeFiles/NightlyMemoryCheck.dir
-D:/Repositories/Cauto/out/build/Cauto/CMakeFiles/PACKAGE.dir
 D:/Repositories/Cauto/out/build/Cauto/CMakeFiles/RUN_TESTS.dir
 D:/Repositories/Cauto/out/build/Cauto/CMakeFiles/ALL_BUILD.dir
 D:/Repositories/Cauto/out/build/Cauto/CMakeFiles/ZERO_CHECK.dir

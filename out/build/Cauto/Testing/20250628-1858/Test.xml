@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Site BuildName="(empty)"
+	BuildStamp="20250628-1858-Experimental"
+	Name="(empty)"
+	Generator="ctest-4.0.3"
+	CompilerName=""
+	CompilerVersion=""
+	OSName="Windows"
+	Hostname="HEITOR-W11"
+	OSRelease=" Professional"
+	OSVersion=" (Build 26100)"
+	OSPlatform="AMD64"
+	Is64Bits="1"
+	VendorString="GenuineIntel"
+	VendorID="Intel Corporation"
+	FamilyID="6"
+	ModelID="15"
+	ModelName=""
+	ProcessorCacheSize="-1"
+	NumberOfLogicalCPU="10"
+	NumberOfPhysicalCPU="10"
+	TotalVirtualMemory="34658"
+	TotalPhysicalMemory="32610"
+	LogicalProcessorsPerPhysical="1"
+	ProcessorClockFrequency="2893"
+	>
+	<Testing>
+		<StartDateTime>Jun 28 15:58 E. South America Standard Time</StartDateTime>
+		<StartTestTime>1751137081</StartTestTime>
+		<TestList/>
+		<EndDateTime>Jun 28 15:58 E. South America Standard Time</EndDateTime>
+		<EndTestTime>1751137081</EndTestTime>
+		<ElapsedMinutes>0</ElapsedMinutes>
+	</Testing>
+</Site>

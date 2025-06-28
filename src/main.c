@@ -8,6 +8,9 @@
 #include "include/utils.h"
 #include "include/utils.c"
 
+#include "clicker/clicker.h"
+#include "clicker/clicker.c"
+
 #include "include/hwid.c"
 
 int main() {
@@ -29,11 +32,13 @@ int main() {
     //     printf("HWID found in the list, continuing...\n");
     // }
 
-    configCauto config;
+    globalConfig config;
+    clickerConfig clicker;
     RandomState randState;
     
-    init_config(&config);
-    init_randomState(&randState);
+    initGlobalConfig(&config);
+    initClickerConfig(&clicker);
+    initRandomState(&randState);
 
     printf("\n=== RECOMMENDED SETTINGS ===\n");
     printf("For 13 CPS:\n");
@@ -51,60 +56,52 @@ int main() {
     printf("================================\n\n");
 
     printf("Desired CPS: ");
-    scanf_s("%d", &config.inputCPS);
+    scanf_s("%d", &clicker.inputCPS);
 
-    if(config.inputCPS < 1) {
+    if(clicker.inputCPS < 1) {
         printf("Your CPS needs to be a value higher than 0.\n");
         return 1;
     }
 
     printf("Select the minimum click duration (ms): ");
-    scanf_s("%f", &config.minDurationClick);
-    if(config.minDurationClick < 10) {
+    scanf_s("%f", &clicker.minDurationClick);
+    if(clicker.minDurationClick < 10) {
         printf("The click duration must be greater than 10.\n");
         return 1;
     }
 
     printf("Select the maximum click duration (ms): ");
-    scanf_s("%f", &config.maxDurationClick);
-    if(config.maxDurationClick < config.minDurationClick) {
+    scanf_s("%f", &clicker.maxDurationClick);
+    if(clicker.maxDurationClick < clicker.minDurationClick) {
         printf("The maximum click duration must be greater than the minimum.\n");
         return 1;
     }
 
     printf("CPS Drop chance (%%): ");
-    scanf_s("%f", &config.dropChance);
-    if(config.dropChance < 0 || config.dropChance > 100) {
+    scanf_s("%f", &clicker.dropChance);
+    if(clicker.dropChance < 0 || clicker.dropChance > 100) {
         printf("The drop chance must be between 0 and 100.\n");
         return 1;
     }
 
     printf("Amount of CPS in the DROP: ");
-    scanf_s("%d", &config.dropCPS);
+    scanf_s("%d", &clicker.dropCPS);
 
     printf("CPS Spike chance (%%): ");
-    scanf_s("%f", &config.spikeChance);
-    if(config.spikeChance < 0 || config.spikeChance > 100) {
+    scanf_s("%f", &clicker.spikeChance);
+    if(clicker.spikeChance < 0 || clicker.spikeChance > 100) {
         printf("The spike chance must be between 0 and 100.\n");
         return 1;
     }
 
     printf("Amount of CPS in the SPIKE: ");
-    scanf_s("%d", &config.spikeCPS);
+    scanf_s("%d", &clicker.spikeCPS);
 
     fflush(stdin);
 
     printf("Soundclicks path (leave empty for disabling it): ");
-    scanf_s("%255s", pathSoundClicks, sizeof(pathSoundClicks));
+    scanf_s("%255s", pathSoundClicks, 256);
 
-    if (strlen(pathSoundClicks) > 0) {
-        config.soundClicks = true;
-        printf("Sound clicks enabled with path: %s\n", pathSoundClicks);
-    } else {
-        config.soundClicks = false;
-        printf("Sound clicks disabled\n");
-    }
-    
     while (true) {
         if (GetAsyncKeyState(VK_LBUTTON) & 0x8000 && config.leftActive) {
 
@@ -121,16 +118,16 @@ int main() {
 
                         // Use adaptive randomization for click duration
                         float durationClick = adaptiveRandomization(
-                            (config.minDurationClick + config.maxDurationClick) / 2.0f,
-                            (config.maxDurationClick - config.minDurationClick) / 4.0f,
+                            (clicker.minDurationClick + clicker.maxDurationClick) / 2.0f,
+                            (clicker.maxDurationClick - clicker.minDurationClick) / 4.0f,
                             &randState
                         );
                         
                         // Ensure bounds
-                        if (durationClick < config.minDurationClick) durationClick = config.minDurationClick;
-                        if (durationClick > config.maxDurationClick) durationClick = config.maxDurationClick;
+                        if (durationClick < clicker.minDurationClick) durationClick = clicker.minDurationClick;
+                        if (durationClick > clicker.maxDurationClick) durationClick = clicker.maxDurationClick;
 
-                        float modifiedCPS = cpsWithBursts(&config, &randState);
+                        float modifiedCPS = cpsWithBursts(&clicker, &randState);
                         float baseInterval = 1000.0f / modifiedCPS;
                         
                         // Add jitter to prevent perfect timing
