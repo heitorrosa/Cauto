@@ -40,62 +40,95 @@ int main() {
     initClickerConfig(&clicker);
     initRandomState(&randState);
 
-    printf("\n=== RECOMMENDED SETTINGS ===\n");
-    printf("For 13 CPS:\n");
-    printf("  - Drop Chance: 25%% (frequent, natural drops)\n");
-    printf("  - Drop Amount: 2 CPS (subtle reduction)\n");
-    printf("  - Spike Chance: 15%% (occasional bursts)\n");
-    printf("  - Spike Amount: 1 CPS (gentle increase)\n");
-    printf("\nFor 18 CPS:\n");
-    printf("  - Drop Chance: 30%% (very frequent drops)\n");
-    printf("  - Drop Amount: 3 CPS (noticeable reduction)\n");
-    printf("  - Spike Chance: 12%% (controlled bursts)\n");
-    printf("  - Spike Amount: 2 CPS (moderate increase)\n");
-    printf("\nNOTE: Drop frequency automatically increases during long periods\n");
-    printf("of normal clicking to create more natural human-like patterns.\n");
-    printf("================================\n\n");
+    int mode;
 
-    printf("Desired CPS: ");
-    scanf_s("%d", &clicker.inputCPS);
+    printf("Select the desired mode:\n");
+    printf("1. Standard Clicker\n");
+    printf("2. Click Player (RECOMMENDED)\n");
+    scanf_s("%d", &mode);
 
-    if(clicker.inputCPS < 1) {
-        printf("Your CPS needs to be a value higher than 0.\n");
-        return 1;
+    switch (mode) {
+        case 1:
+            config.playerActive = false;
+            config.leftActive = true;
+            break;
+        case 2:
+            config.playerActive = true;
+            config.leftActive = false;
+            break;
+        default:
+            printf("Invalid mode selected. Please choose 1 or 2.\n");
+            return 1;
     }
 
-    printf("Select the minimum click duration (ms): ");
-    scanf_s("%f", &clicker.minDurationClick);
-    if(clicker.minDurationClick < 10) {
-        printf("The click duration must be greater than 10.\n");
-        return 1;
+    if (mode == 1) {
+        printf("Desired CPS: ");
+        scanf_s("%d", &clicker.inputCPS);
+
+        if(clicker.inputCPS < 1) {
+            printf("Your CPS needs to be a value higher than 0.\n");
+            return 1;
+        }
+
+        printf("Select the minimum click duration (ms): ");
+        scanf_s("%f", &clicker.minDurationClick);
+        if(clicker.minDurationClick < 10) {
+            printf("The click duration must be greater than 10.\n");
+            return 1;
+        }
+
+        printf("Select the maximum click duration (ms): ");
+        scanf_s("%f", &clicker.maxDurationClick);
+        if(clicker.maxDurationClick < clicker.minDurationClick) {
+            printf("The maximum click duration must be greater than the minimum.\n");
+            return 1;
+        }
+
+        printf("CPS Drop chance (%%): ");
+        scanf_s("%f", &clicker.dropChance);
+        if(clicker.dropChance < 0 || clicker.dropChance > 100) {
+            printf("The drop chance must be between 0 and 100.\n");
+            return 1;
+        }
+
+        printf("Amount of CPS in the DROP: ");
+        scanf_s("%d", &clicker.dropCPS);
+
+        printf("CPS Spike chance (%%): ");
+        scanf_s("%f", &clicker.spikeChance);
+        if(clicker.spikeChance < 0 || clicker.spikeChance > 100) {
+            printf("The spike chance must be between 0 and 100.\n");
+            return 1;
+        }
+
+        printf("Amount of CPS in the SPIKE: ");
+        scanf_s("%d", &clicker.spikeCPS);
     }
 
-    printf("Select the maximum click duration (ms): ");
-    scanf_s("%f", &clicker.maxDurationClick);
-    if(clicker.maxDurationClick < clicker.minDurationClick) {
-        printf("The maximum click duration must be greater than the minimum.\n");
-        return 1;
+    if (mode == 2) {
+        int choice;
+
+        printf("1. Input a config path\n");
+        printf("2. Input a config manually\n\n");
+        printf("3. Butterfly Click Profile (10k Clicks)\n");
+        printf("4. Jitter Click Profile (10k Clicks)\n");
+        printf("Input your choice: ");
+        scanf_s("%d", &choice);
+
+        switch (choice) {
+            case 1:
+
+            case 2:
+
+            case 3:
+
+            case 4:
+
+            default:
+                printf("Invalid choice. Please select a valid option.\n");
+                return 1;
+        }
     }
-
-    printf("CPS Drop chance (%%): ");
-    scanf_s("%f", &clicker.dropChance);
-    if(clicker.dropChance < 0 || clicker.dropChance > 100) {
-        printf("The drop chance must be between 0 and 100.\n");
-        return 1;
-    }
-
-    printf("Amount of CPS in the DROP: ");
-    scanf_s("%d", &clicker.dropCPS);
-
-    printf("CPS Spike chance (%%): ");
-    scanf_s("%f", &clicker.spikeChance);
-    if(clicker.spikeChance < 0 || clicker.spikeChance > 100) {
-        printf("The spike chance must be between 0 and 100.\n");
-        return 1;
-    }
-
-    printf("Amount of CPS in the SPIKE: ");
-    scanf_s("%d", &clicker.spikeCPS);
 
     fflush(stdin);
 
@@ -103,60 +136,66 @@ int main() {
     scanf_s("%255s", pathSoundClicks, 256);
 
     while (true) {
-        if (GetAsyncKeyState(VK_LBUTTON) & 0x8000 && config.leftActive) {
+        HWND currentWindow = GetForegroundWindow();
+        HWND minecraftRecent = FindWindowA("GLFW30", NULL);
+        HWND minecraftOld = FindWindowA("LWJGL", NULL);
+        HWND minecraftBedrock = FindWindowA("ApplicationFrameWindow", NULL);
 
-            HWND currentWindow = GetForegroundWindow();
-            HWND minecraftRecent = FindWindowA("GLFW30", NULL);
-            HWND minecraftOld = FindWindowA("LWJGL", NULL);
-            HWND minecraftBedrock = FindWindowA("ApplicationFrameWindow", NULL);
-
-            if (config.mcOnly && currentWindow != minecraftRecent && currentWindow != minecraftOld && currentWindow != minecraftBedrock) {
-
-            }
-            else {
-                    if (config.clickInventory || !cursorVisible()) {
-
-                        // Use adaptive randomization for click duration
-                        float durationClick = adaptiveRandomization(
-                            (clicker.minDurationClick + clicker.maxDurationClick) / 2.0f,
-                            (clicker.maxDurationClick - clicker.minDurationClick) / 4.0f,
-                            &randState
-                        );
-                        
-                        // Ensure bounds
-                        if (durationClick < clicker.minDurationClick) durationClick = clicker.minDurationClick;
-                        if (durationClick > clicker.maxDurationClick) durationClick = clicker.maxDurationClick;
-
-                        float modifiedCPS = cpsWithBursts(&clicker, &randState);
-                        float baseInterval = 1000.0f / modifiedCPS;
-                        
-                        // Add jitter to prevent perfect timing
-                        float jitter = calculateJitter(&randState);
-                        float randomizedClick = baseInterval - durationClick + jitter;
-
-                        if (randomizedClick < 5) randomizedClick = 5;
-
-                        if(config.soundClicks) {
-                            PlaySoundA((char *)pathSoundClicks, NULL, SND_NOSTOP | SND_ASYNC | SND_FILENAME | SND_ALIAS);
-                        }
-
-                        sendLeftClickDown(true);
-                        Sleep((int)durationClick);
-
-                        if(!config.breakBlocks) {
-                            sendLeftClickDown(false);
-                        }
-
-                        Sleep((int)randomizedClick);
-                    }
-            }
-
+        if (config.mcOnly && currentWindow != minecraftRecent && currentWindow != minecraftOld && currentWindow != minecraftBedrock) {
+            continue;
         }
-        else {
+
+        if (config.leftActive && GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
+            config.playerActive = false;
+
+            if (config.clickInventory || !cursorVisible()) {
+
+                // Use adaptive randomization for click duration
+                float durationClick = adaptiveRandomization(
+                    (clicker.minDurationClick + clicker.maxDurationClick) / 2.0f,
+                    (clicker.maxDurationClick - clicker.minDurationClick) / 4.0f,
+                    &randState
+                );
+                        
+                // Ensure bounds
+                if (durationClick < clicker.minDurationClick) durationClick = clicker.minDurationClick;
+                if (durationClick > clicker.maxDurationClick) durationClick = clicker.maxDurationClick;
+
+                float modifiedCPS = cpsWithBursts(&clicker, &randState);
+                float baseInterval = 1000.0f / modifiedCPS;
+                        
+                // Add jitter to prevent perfect timing
+                float jitter = calculateJitter(&randState);
+                float randomizedClick = baseInterval - durationClick + jitter;
+
+                if (randomizedClick < 5) randomizedClick = 5;
+
+                if(config.soundClicks) {
+                    PlaySoundA((char *)pathSoundClicks, NULL, SND_NOSTOP | SND_ASYNC | SND_FILENAME | SND_ALIAS);
+                }
+
+                // Main clicking logic
+                sendLeftClickDown(true);
+                Sleep((int)durationClick);
+
+                if(!config.breakBlocks) {
+                    sendLeftClickDown(false);
+                }
+
+                Sleep((int)randomizedClick);
+            }
+        }
+        
+        if (config.playerActive && GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
+            config.leftActive = false;
+
+            if (config.clickInventory || !cursorVisible()) {
+
+            }
+        }
+
             PlaySoundA(NULL, NULL, SND_PURGE);
             Sleep(1);
-        }
-
     }
     return 0;
 }
