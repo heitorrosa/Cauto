@@ -15,7 +15,6 @@
 
 int main() {
     // char HWIDListURL[] = "resources/hwidlist.txt";
-    char pathSoundClicks[256] = {0}; // Changed from pointer to array
 
     // if(HWIDchecker(HWIDListURL) == -1) {
     //     printf("error: The HWID list did not load\n");
@@ -41,6 +40,7 @@ int main() {
     initRandomState(&randState);
 
     int mode;
+    char pathSoundClicks[256] = {0};
 
     printf("Select the desired mode:\n");
     printf("1. Standard Clicker\n");
@@ -119,7 +119,6 @@ int main() {
                         printf("Invalid choice. Please select a valid option.\n");
                         return 1;
                 }
-
             break;
 
         default:
@@ -127,18 +126,12 @@ int main() {
             return 1;
     }
 
-    if (mode == 1) {
-
-    }
-
-    if (mode == 2) {
- 
-    }
-
     fflush(stdin);
 
-    printf("Soundclicks path (leave empty for disabling it): ");
-    scanf_s("%255s", pathSoundClicks, 256);
+    if (config.soundClicks) {
+        printf("Soundclicks path: ");
+        scanf_s("%255s", pathSoundClicks, 256);
+    }
 
     while (true) {
         HWND currentWindow = GetForegroundWindow();
