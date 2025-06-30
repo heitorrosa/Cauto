@@ -110,14 +110,17 @@ int main() {
 
                 switch (choice) {
                     case 1:
+                        break;
 
                     case 2:
+                        break;
 
                     case 3:
+                        break;
 
                     default:
                         printf("Invalid choice. Please select a valid option.\n");
-                        return 1;
+                        break;
                 }
             break;
 
@@ -140,11 +143,15 @@ int main() {
         HWND minecraftBedrock = FindWindowA("ApplicationFrameWindow", NULL);
 
         if (config.mcOnly && currentWindow != minecraftRecent && currentWindow != minecraftOld && currentWindow != minecraftBedrock) {
-            Sleep(1);
         }
         else {
             if (config.leftActive && GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
                 if (config.clickInventory || !cursorVisible()) {
+
+                    // Soundclicks
+                    if(config.soundClicks) {
+                        PlaySoundA((char *)pathSoundClicks, NULL, SND_NOSTOP | SND_ASYNC | SND_FILENAME | SND_ALIAS);
+                    }
 
                     // Use adaptive randomization for click duration
                     float durationClick = adaptiveRandomization(
@@ -166,10 +173,6 @@ int main() {
 
                     if (randomizedClick < 5) randomizedClick = 5;
 
-                    if(config.soundClicks) {
-                        PlaySoundA((char *)pathSoundClicks, NULL, SND_NOSTOP | SND_ASYNC | SND_FILENAME | SND_ALIAS);
-                    }
-
                     // Main clicking logic
                     sendLeftClickDown(true);
                     Sleep((int)durationClick);
@@ -180,7 +183,7 @@ int main() {
 
                     Sleep((int)randomizedClick);
                 }
-            } else {
+            } else if (config.leftActive && GetAsyncKeyState(VK_LBUTTON) != 0x8000) {
                 PlaySoundA(NULL, NULL, SND_PURGE);
                 Sleep(1);
             }
@@ -190,8 +193,12 @@ int main() {
 
                 if (config.clickInventory || !cursorVisible()) {
 
+                    // Soundclicks
+                    if(config.soundClicks) {
+                        PlaySoundA((char *)pathSoundClicks, NULL, SND_NOSTOP | SND_ASYNC | SND_FILENAME | SND_ALIAS);
+                    }
                 }
-            } else {
+            } else if (config.playerActive && GetAsyncKeyState(VK_LBUTTON) != 0x8000) {
                 PlaySoundA(NULL, NULL, SND_PURGE);
                 Sleep(1);
             }

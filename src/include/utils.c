@@ -9,7 +9,7 @@
 #include "utils.h"
 
 void initGlobalConfig(globalConfig *config) {
-    config->leftActive = true;
+    config->leftActive = false;
     config->playerActive = false;
 
     config->mcOnly = true;
