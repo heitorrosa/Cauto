@@ -38,8 +38,6 @@ int main() {
     initRandomState(&randState);
     
     int mode;
-    char soundClicks[256] = {};
-
     printf("Select the desired mode:\n");
     printf("1. Standard Clicker\n");
     printf("2. Click Player (RECOMMENDED)\n");
