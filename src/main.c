@@ -26,16 +26,19 @@ int main() {
     //     printf("HWID found in the list, continuing...\n");
     // }
 
+
+
     globalConfig config;
     clickerConfig clicker;
     RandomState randState;
-    
+
+
     initGlobalConfig(&config);
     initClickerConfig(&clicker);
     initRandomState(&randState);
-
+    
     int mode;
-    char pathSoundClicks[256] = {0};
+    char soundClicks[256] = {};
 
     printf("Select the desired mode:\n");
     printf("1. Standard Clicker\n");
@@ -128,8 +131,12 @@ int main() {
 
     if (config.soundClicks) {
         printf("Soundclicks path: ");
-        scanf_s("%255s", pathSoundClicks, 256);
+        scanf_s("%255s", soundClicks, (unsigned)sizeof(soundClicks));
     }
+
+
+
+
 
     while (true) {
         HWND currentWindow = GetForegroundWindow();
@@ -146,18 +153,17 @@ int main() {
             if (config.leftActive && GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
                 if (config.clickInventory || !cursorVisible()) {
 
-                    // Soundclicks
-                    if(config.soundClicks) {
-                        PlaySoundA((char *)pathSoundClicks, NULL, SND_NOSTOP | SND_ASYNC | SND_FILENAME | SND_ALIAS);
-                    }
-
                     // Use adaptive randomization for click duration
                     float durationClick = adaptiveRandomization(
                         (clicker.minDurationClick + clicker.maxDurationClick) / 2.0f,
                         (clicker.maxDurationClick - clicker.minDurationClick) / 4.0f,
                         &randState
                     );
-                            
+                    
+                    if(config.soundClicks) {
+                         PlaySoundA((char *)soundClicks, NULL, SND_SYSTEM | SND_NOSTOP | SND_ASYNC | SND_FILENAME | SND_ALIAS);
+                    }
+
                     // Ensure bounds
                     if (durationClick < clicker.minDurationClick) durationClick = clicker.minDurationClick;
                     if (durationClick > clicker.maxDurationClick) durationClick = clicker.maxDurationClick;
@@ -196,7 +202,7 @@ int main() {
 
                     // Soundclicks
                     if(config.soundClicks) {
-                        PlaySoundA((char *)pathSoundClicks, NULL, SND_NOSTOP | SND_ASYNC | SND_FILENAME | SND_ALIAS);
+                         PlaySoundA((char *)soundClicks, NULL, SND_NOSTOP | SND_ASYNC | SND_FILENAME | SND_ALIAS);
                     }
                 }
             } else if (config.playerActive && GetAsyncKeyState(VK_LBUTTON) != 0x8000) {
