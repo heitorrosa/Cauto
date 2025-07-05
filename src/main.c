@@ -155,12 +155,9 @@ int main() {
             if (config.leftActive && GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
                 if (config.clickInventory || !cursorVisible()) {
 
-                    // Use adaptive randomization for click duration
-                    float durationClick = adaptiveRandomization(
-                        (clicker.minDurationClick + clicker.maxDurationClick) / 2.0f,
-                        (clicker.maxDurationClick - clicker.minDurationClick) / 4.0f,
-                        &randState
-                    );
+                    // Get human-like click duration and interval
+                    float durationClick = getClickDuration(&clicker, &randState);
+                    float clickInterval = getClickInterval(&clicker, &randState);
                     
                     if (config.soundClicks) {
                         DWORD soundSize;
@@ -170,18 +167,9 @@ int main() {
                         }
                     }
 
-                    // Ensure bounds
-                    if (durationClick < clicker.minDurationClick) durationClick = clicker.minDurationClick;
-                    if (durationClick > clicker.maxDurationClick) durationClick = clicker.maxDurationClick;
-
-                    float modifiedCPS = cpsWithBursts(&clicker, &randState);
-                    float baseInterval = 1000.0f / modifiedCPS;
-                            
-                    // Add jitter to prevent perfect timing
-                    float jitter = calculateJitter(&randState);
-                    float randomizedClick = baseInterval - durationClick + jitter;
-
-                    if (randomizedClick < 5) randomizedClick = 5;
+                    // Calculate delay between clicks
+                    float delayAfterClick = clickInterval - durationClick;
+                    if (delayAfterClick < 5) delayAfterClick = 5;
 
                     // Main clicking logic
                     sendLeftClickDown(true);
@@ -191,13 +179,16 @@ int main() {
                         sendLeftClickDown(false);
                     }
 
-                    Sleep((int)randomizedClick);
+                    Sleep((int)delayAfterClick);
                 }
             } else if (config.leftActive && GetAsyncKeyState(VK_LBUTTON) != 0x8000) {
                 PlaySoundA(NULL, NULL, SND_PURGE);
+                
+                // Allow fatigue recovery when not clicking
+                if ((GetTickCount() - randState.human.lastActiveTime) > 2000) {
+                    getClickInterval(&clicker, &randState); // Update state for recovery
+                }
             }
- 
-            
 
             // Click Player Logic
             if (config.playerActive && GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
