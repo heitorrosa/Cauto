@@ -197,6 +197,9 @@ Cauto_IS_TOP_LEVEL:STATIC=ON
 //Value Computed by CMake
 Cauto_SOURCE_DIR:STATIC=D:/Repositories/Cauto
 
+//The directory containing a CMake configuration file for Libwebsockets.
+Libwebsockets_DIR:PATH=C:/libwebsockets/cmake
+
 //No help, variable specified on the command line.
 VCPKG_APPLOCAL_DEPS:UNINITIALIZED=ON
 
@@ -205,6 +208,9 @@ VCPKG_TARGET_TRIPLET:UNINITIALIZED=-static
 
 //No help, variable specified on the command line.
 X_VCPKG_APPLOCAL_DEPS_INSTALL:UNINITIALIZED=ON
+
+//The directory containing a CMake configuration file for libwebsockets.
+libwebsockets_DIR:PATH=libwebsockets_DIR-NOTFOUND
 
 
 ########################

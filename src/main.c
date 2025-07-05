@@ -1,17 +1,12 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-#include <windows.h>
-#include <time.h>
+#include "resources/include.c"
 
-#include "include/utils.h"
-#include "include/utils.c"
+#include "utils/utils.h"
+#include "utils/utils.c"
 
 #include "clicker/clicker.h"
 #include "clicker/clicker.c"
 
-#include "include/hwid.c"
+#include "utils/hwid.c"
 
 int main() {
     // char HWIDListURL[] = "resources/hwidlist.txt";
@@ -144,7 +139,10 @@ int main() {
 
         if (config.mcOnly && currentWindow != minecraftRecent && currentWindow != minecraftOld && currentWindow != minecraftBedrock) {
         }
+
         else {
+
+            // AutoClicker Logic
             if (config.leftActive && GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
                 if (config.clickInventory || !cursorVisible()) {
 
@@ -187,7 +185,10 @@ int main() {
                 PlaySoundA(NULL, NULL, SND_PURGE);
                 Sleep(1);
             }
+ 
             
+
+            // Click Player Logic
             if (config.playerActive && GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
                 config.leftActive = false;
 

@@ -1042,6 +1042,18 @@
 			"value" : "D:/Repositories/Cauto"
 		},
 		{
+			"name" : "Libwebsockets_DIR",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "The directory containing a CMake configuration file for Libwebsockets."
+				}
+			],
+			"type" : "PATH",
+			"value" : "C:/libwebsockets/cmake"
+		},
+		{
 			"name" : "VCPKG_APPLOCAL_DEPS",
 			"properties" : 
 			[
@@ -1076,6 +1088,18 @@
 			],
 			"type" : "UNINITIALIZED",
 			"value" : "ON"
+		},
+		{
+			"name" : "libwebsockets_DIR",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "The directory containing a CMake configuration file for libwebsockets."
+				}
+			],
+			"type" : "PATH",
+			"value" : "libwebsockets_DIR-NOTFOUND"
 		}
 	],
 	"kind" : "cache",

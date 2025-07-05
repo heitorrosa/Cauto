@@ -1,8 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-#include <windows.h>
+#include "../resources/include.c"
 
 void getHWID(char* buffer, size_t bufferSize) {
     HKEY hKey;
