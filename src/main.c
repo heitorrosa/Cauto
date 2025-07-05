@@ -38,6 +38,7 @@ int main() {
     initRandomState(&randState);
     
     int mode;
+
     printf("Select the desired mode:\n");
     printf("1. Standard Clicker\n");
     printf("2. Click Player (RECOMMENDED)\n");
@@ -89,7 +90,6 @@ int main() {
 
             printf("Amount of CPS in the SPIKE: ");
             scanf_s("%d", &clicker.spikeCPS);
-
             break;
 
         case 2:
@@ -148,11 +148,9 @@ int main() {
         HWND minecraftOld = FindWindowA("LWJGL", NULL);
         HWND minecraftBedrock = FindWindowA("ApplicationFrameWindow", NULL);
 
-        if (config.mcOnly && currentWindow != minecraftRecent && currentWindow != minecraftOld && currentWindow != minecraftBedrock) {
-        }
+        if (config.mcOnly && currentWindow != minecraftRecent && currentWindow != minecraftOld && currentWindow != minecraftBedrock) continue;
 
         else {
-
             // AutoClicker Logic
             if (config.leftActive && GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
                 if (config.clickInventory || !cursorVisible()) {
@@ -164,7 +162,7 @@ int main() {
                         &randState
                     );
                     
-                    if(config.soundClicks) {
+                    if (config.soundClicks) {
                         DWORD soundSize;
                         char* soundData = getRandomWavData(&soundCollection, &soundSize);
                         if (soundData) {
@@ -189,7 +187,7 @@ int main() {
                     sendLeftClickDown(true);
                     Sleep((int)durationClick);
 
-                    if(!config.breakBlocks) {
+                    if (!config.breakBlocks) {
                         sendLeftClickDown(false);
                     }
 
@@ -197,7 +195,6 @@ int main() {
                 }
             } else if (config.leftActive && GetAsyncKeyState(VK_LBUTTON) != 0x8000) {
                 PlaySoundA(NULL, NULL, SND_PURGE);
-                Sleep(1);
             }
  
             
@@ -209,7 +206,7 @@ int main() {
                 if (config.clickInventory || !cursorVisible()) {
 
                     // Soundclicks
-                    if(config.soundClicks) {
+                    if (config.soundClicks) {
                         DWORD soundSize;
                         char* soundData = getRandomWavData(&soundCollection, &soundSize);
                         if (soundData) {
@@ -219,12 +216,10 @@ int main() {
                 }
             } else if (config.playerActive && GetAsyncKeyState(VK_LBUTTON) != 0x8000) {
                 PlaySoundA(NULL, NULL, SND_PURGE);
-                Sleep(1);
             }
         }
     }
 
-    // Cleanup
     freeWavCollection(&soundCollection);
     return 0;
 }

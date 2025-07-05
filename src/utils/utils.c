@@ -3,7 +3,7 @@
 #include "utils.h"
 
 void initGlobalConfig(globalConfig *config) {
-    config->leftActive = false;
+    config->leftActive = true;
     config->playerActive = false;
 
     config->mcOnly = true;
@@ -25,6 +25,21 @@ bool cursorVisible(void) {
 
     return false;
 }
+
+int bedrockCursorVisible() {
+    CURSORINFO ci;
+    ci.cbSize = sizeof(CURSORINFO);
+    
+    if (!GetCursorInfo(&ci)) {
+        return false;
+    }
+    
+    int systemVisible = (ci.flags & CURSOR_SHOWING) != 0;
+    int handleValid = ci.hCursor != NULL;
+    
+    return systemVisible && handleValid;
+}
+
 
 void sendLeftClickDown(bool down) {
     POINT pos;
