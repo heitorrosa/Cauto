@@ -3,6 +3,17 @@
 
 #include "../resources/include.c"
 
+typedef struct {
+    char* data;
+    DWORD size;
+} WavFile;
+
+typedef struct {
+    WavFile* files;
+    int count;
+    int capacity;
+} WavCollection;
+
 typedef struct globalConfig {
     bool leftActive;
     bool playerActive;
@@ -17,5 +28,8 @@ typedef struct globalConfig {
 void initGlobalConfig(globalConfig *config);
 bool cursorVisible(void);
 void sendLeftClickDown(bool down);
+bool openWavFileDialog(WavCollection* collection);
+void freeWavCollection(WavCollection* collection);
+char* getRandomWavData(WavCollection* collection, DWORD* size);
 
 #endif // UTILS_H

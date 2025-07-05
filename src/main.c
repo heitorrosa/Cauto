@@ -31,7 +31,7 @@ int main() {
     globalConfig config;
     clickerConfig clicker;
     RandomState randState;
-
+    WavCollection soundCollection = {0};
 
     initGlobalConfig(&config);
     initClickerConfig(&clicker);
@@ -130,8 +130,14 @@ int main() {
     fflush(stdin);
 
     if (config.soundClicks) {
-        printf("Soundclicks path: ");
-        scanf_s("%255s", soundClicks, (unsigned)sizeof(soundClicks));
+        printf("Select WAV sound files for clicks...\n");
+        
+        if (openWavFileDialog(&soundCollection)) {
+            printf("Loaded %d WAV file(s) successfully.\n", soundCollection.count);
+        } else {
+            printf("No WAV files selected. Sound will be disabled.\n");
+            config.soundClicks = false;
+        }
     }
 
 
@@ -161,7 +167,11 @@ int main() {
                     );
                     
                     if(config.soundClicks) {
-                         PlaySoundA((char *)soundClicks, NULL, SND_SYSTEM | SND_NOSTOP | SND_ASYNC | SND_FILENAME | SND_ALIAS);
+                        DWORD soundSize;
+                        char* soundData = getRandomWavData(&soundCollection, &soundSize);
+                        if (soundData) {
+                            PlaySoundA(soundData, NULL, SND_MEMORY | SND_SYSTEM | SND_NOSTOP | SND_ASYNC);
+                        }
                     }
 
                     // Ensure bounds
@@ -202,7 +212,11 @@ int main() {
 
                     // Soundclicks
                     if(config.soundClicks) {
-                         PlaySoundA((char *)soundClicks, NULL, SND_NOSTOP | SND_ASYNC | SND_FILENAME | SND_ALIAS);
+                        DWORD soundSize;
+                        char* soundData = getRandomWavData(&soundCollection, &soundSize);
+                        if (soundData) {
+                            PlaySoundA(soundData, NULL, SND_MEMORY | SND_SYSTEM | SND_NOSTOP | SND_ASYNC);
+                        }
                     }
                 }
             } else if (config.playerActive && GetAsyncKeyState(VK_LBUTTON) != 0x8000) {
@@ -212,5 +226,7 @@ int main() {
         }
     }
 
+    // Cleanup
+    freeWavCollection(&soundCollection);
     return 0;
 }
