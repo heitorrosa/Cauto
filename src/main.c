@@ -26,8 +26,6 @@ int main() {
     //     printf("HWID found in the list, continuing...\n");
     // }
 
-
-
     globalConfig config;
     clickerConfig clicker;
     RandomState randState;
@@ -155,10 +153,10 @@ int main() {
             if (config.leftActive && GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
                 if (config.clickInventory || !cursorVisible()) {
 
-                    // Get human-like click duration and interval
                     float durationClick = getClickDuration(&clicker, &randState);
                     float clickInterval = getClickInterval(&clicker, &randState);
                     
+                    // Soundclicks
                     if (config.soundClicks) {
                         DWORD soundSize;
                         char* soundData = getRandomWavData(&soundCollection, &soundSize);
