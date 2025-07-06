@@ -120,47 +120,23 @@ static float gaussianRandom(float mean, float stddev, RandomState *state) {
     return mag * sinf(6.28318530718f * v) + mean;
 }
 
-// Update human behavioral state with gradual fatigue recovery
+// Natural human behavioral state update
 static void updateHumanState(RandomState *state, bool isActivelyClicking) {
     DWORD currentTime = GetTickCount();
     DWORD sessionDuration = currentTime - state->sessionStartTime;
-    DWORD timeSinceBreak = currentTime - state->human.lastBreakTime;
     DWORD timeSinceActive = currentTime - state->human.lastActiveTime;
     
     if (isActivelyClicking) {
-        // Check if user was previously inactive (break of 2+ seconds)
+        // Fatigue recovery on resume
         if (state->human.wasInactive && timeSinceActive > 2000) {
-            // User is resuming clicking after a break - gradual fatigue recovery
-            float breakDuration = (float)timeSinceActive / 1000.0f; // seconds
+            float breakDuration = (float)timeSinceActive / 1000.0f;
+            float fatigueReduction = fminf(0.8f, 0.3f + (breakDuration / 60.0f));
             
-            if (breakDuration >= 2.0f) {
-                // Progressive fatigue reduction based on break duration
-                float fatigueReduction;
-                
-                if (breakDuration <= 5.0f) {
-                    // 2-5 seconds: 30-50% reduction
-                    fatigueReduction = 0.3f + ((breakDuration - 2.0f) / 3.0f) * 0.2f;
-                } else if (breakDuration <= 15.0f) {
-                    // 5-15 seconds: 50-65% reduction
-                    fatigueReduction = 0.5f + ((breakDuration - 5.0f) / 10.0f) * 0.15f;
-                } else if (breakDuration <= 30.0f) {
-                    // 15-30 seconds: 65-75% reduction
-                    fatigueReduction = 0.65f + ((breakDuration - 15.0f) / 15.0f) * 0.1f;
-                } else {
-                    // 30+ seconds: 75-80% reduction (cap)
-                    fatigueReduction = 0.75f + (fminf(breakDuration - 30.0f, 30.0f) / 30.0f) * 0.05f;
-                }
-                
-                // Apply gradual recovery
-                state->human.fatigue *= (1.0f - fatigueReduction);
-                state->human.exhaustionLevel *= (1.0f - fatigueReduction);
-                
-                // More conservative session timer reset to avoid detection spikes
-                if (breakDuration > 15.0f && state->human.fatigue < 0.15f) {
-                    // Only partial session reset to maintain some behavioral continuity
-                    DWORD resetAmount = (DWORD)(fatigueReduction * 180000.0f); // Max 3 minutes back
-                    state->sessionStartTime = currentTime - resetAmount;
-                }
+            state->human.fatigue *= (1.0f - fatigueReduction);
+            state->human.exhaustionLevel *= (1.0f - fatigueReduction);
+            
+            if (breakDuration > 15.0f) {
+                state->sessionStartTime = currentTime - (DWORD)(fatigueReduction * 120000.0f);
             }
         }
         
@@ -168,126 +144,60 @@ static void updateHumanState(RandomState *state, bool isActivelyClicking) {
         state->human.isRecovering = false;
         state->human.wasInactive = false;
         
-        // Normal fatigue accumulation when actively clicking
-        float timeFactor = (float)sessionDuration / 60000.0f;
-        state->human.fatigue = 0.3f * (1.0f - expf(-timeFactor * 0.08f));
+        // Minimal fatigue accumulation
+        float timeFactor = (float)sessionDuration / 600000.0f; // 10 minutes to reach max
+        state->human.fatigue = 0.1f * (1.0f - expf(-timeFactor * 0.3f));
         
-        if (timeFactor > 8.0f) {
-            float exhaustionTime = timeFactor - 8.0f;
-            state->human.exhaustionLevel = 0.15f * (1.0f - expf(-exhaustionTime * 0.1f));
+        if (timeFactor > 3.0f) { // After 30 minutes
+            float exhaustionTime = timeFactor - 3.0f;
+            state->human.exhaustionLevel = 0.03f * (1.0f - expf(-exhaustionTime * 0.2f));
         }
     } else {
-        // Mark as inactive if break is long enough
         if (timeSinceActive > 2000) {
             state->human.wasInactive = true;
             state->human.isRecovering = true;
             
-            // Much slower gradual fatigue recovery during inactivity
             float recoveryTime = (float)timeSinceActive / 1000.0f;
-            float fatigueRecovery = state->human.recoveryRate * recoveryTime * 0.01f; // Reduced from 0.02f to 0.01f
+            float recovery = recoveryTime * 0.025f;
             
-            // Less aggressive accelerated recovery
-            if (recoveryTime <= 30.0f) {
-                fatigueRecovery *= 1.5f; // Reduced from 2.0f to 1.5f
-            }
-            
-            state->human.fatigue -= fatigueRecovery;
+            state->human.fatigue -= recovery;
             if (state->human.fatigue < 0.0f) state->human.fatigue = 0.0f;
             
-            float exhaustionRecovery = state->human.recoveryRate * recoveryTime * 0.005f; // Reduced from 0.01f
-            state->human.exhaustionLevel -= exhaustionRecovery;
+            state->human.exhaustionLevel -= recovery * 0.8f;
             if (state->human.exhaustionLevel < 0.0f) state->human.exhaustionLevel = 0.0f;
-            
-            // More conservative session timer reset
-            if (recoveryTime > 120.0f && state->human.fatigue < 0.05f) { // Increased threshold
-                state->sessionStartTime = currentTime - 60000;
-            }
         }
     }
     
-    // Concentration calculation with smoother transitions
-    float concentrationBase = 0.90f - (state->human.fatigue * 0.2f) - (state->human.exhaustionLevel * 0.3f);
+    // Natural concentration with realistic variation
+    float baseConcentration = 0.85f - (state->human.fatigue * 0.2f) - (state->human.exhaustionLevel * 0.15f);
     
-    // Reduce concentration bonus during early recovery to prevent detection spikes
-    if (state->human.isRecovering) {
-        float recoveryTime = (float)(currentTime - state->human.lastActiveTime) / 1000.0f;
-        if (recoveryTime < 10.0f) {
-            // Gradually increase concentration bonus over first 10 seconds of recovery
-            concentrationBase += 0.05f * (recoveryTime / 10.0f);
-        } else {
-            concentrationBase += 0.05f; // Reduced from 0.1f
-        }
-    }
+    // Add natural attention fluctuations
+    float attentionWave = sinf((float)sessionDuration / 20000.0f * 6.28318530718f) * 0.06f;
+    float microFocus = randomRange(-0.04f, 0.04f, state);
     
-    float microCycle = sinf((float)sessionDuration / 25000.0f * 6.28318530718f) * 0.1f;
-    state->human.concentration = concentrationBase + microCycle;
+    state->human.concentration = baseConcentration + attentionWave + microFocus;
     if (state->human.concentration > 1.0f) state->human.concentration = 1.0f;
-    if (state->human.concentration < 0.6f) state->human.concentration = 0.6f;
+    if (state->human.concentration < 0.65f) state->human.concentration = 0.65f;
     
-    // Smoother rhythm changes to prevent detection spikes
-    float rhythmVariation = 0.015f + (state->human.fatigue * 0.02f) + (state->human.exhaustionLevel * 0.03f);
+    // Natural rhythm with realistic drift
+    float rhythmDrift = randomRange(-0.01f, 0.01f, state);
+    float fatigueRhythm = state->human.fatigue * randomRange(-0.02f, 0.02f, state);
     
-    // Reduce rhythm variation during early recovery
-    if (state->human.isRecovering) {
-        float recoveryTime = (float)(currentTime - state->human.lastActiveTime) / 1000.0f;
-        if (recoveryTime < 15.0f) {
-            rhythmVariation *= 0.3f + (recoveryTime / 15.0f) * 0.4f; // Gradual increase from 30% to 70%
-        } else {
-            rhythmVariation *= 0.7f; // Reduced from 0.5f
-        }
-    }
+    state->human.rhythm += rhythmDrift + fatigueRhythm;
+    if (state->human.rhythm < 0.88f) state->human.rhythm = 0.88f;
+    if (state->human.rhythm > 1.12f) state->human.rhythm = 1.12f;
     
-    state->human.rhythm += randomRange(-rhythmVariation, rhythmVariation, state);
-    if (state->human.rhythm < 0.7f) state->human.rhythm = 0.7f;
-    if (state->human.rhythm > 1.25f) state->human.rhythm = 1.25f;
-    
-    // Extremely conservative kurtosis manipulation - barely noticeable
-    if (isActivelyClicking) {
-        state->human.kurtosisCounter += 0.3f; // Further reduced from 0.5f
-    }
-    
-    // Extremely rare outlier forcing to prevent consistency detection
+    // Natural counters
     if (isActivelyClicking) {
         state->human.outlierForced++;
-        
-        // Make outliers extremely rare
-        float outlierThreshold = 40.0f + randomRange(0.0f, 60.0f, state); // Increased from 20-50 to 40-100
-        if (state->human.wasInactive) {
-            float timeSinceRecovery = (float)(currentTime - state->human.lastActiveTime) / 1000.0f;
-            if (timeSinceRecovery < 60.0f) { // Extended from 45s to 60s
-                // Make outliers even rarer during recovery
-                outlierThreshold *= 3.0f + (60.0f - timeSinceRecovery) / 30.0f; // 3x to 5x threshold
-            }
-        }
-        
-        if (state->human.outlierForced > (int)outlierThreshold) {
-            // Even less chance to force outliers
-            if (randomFloat(state) < 0.5f) { // Reduced from 70% to 50%
-                state->human.outlierForced = -(1 + (int)randomRange(0.0f, 0.5f, state)); // Max 1-2 outliers
-            } else {
-                state->human.outlierForced = 0; // Skip outliers more often
-            }
-        }
-    }
-    
-    // Moderate micro-pause system with smoother recovery
-    if (isActivelyClicking) {
         state->human.microPauseCounter++;
-        int pauseThreshold = (int)(120.0f - (state->human.exhaustionLevel * 30.0f));
         
-        // Increase pause threshold during early recovery
-        if (state->human.wasInactive) {
-            float timeSinceRecovery = (float)(currentTime - state->human.lastActiveTime) / 1000.0f;
-            if (timeSinceRecovery < 20.0f) {
-                pauseThreshold = (int)(pauseThreshold * (1.3f + (20.0f - timeSinceRecovery) / 40.0f));
-            }
-        }
-        
+        // Realistic micro-pauses based on concentration
+        int pauseThreshold = (int)(200.0f + randomRange(-50.0f, 50.0f, state));
         if (state->human.microPauseCounter > pauseThreshold) {
-            float pauseChance = 0.1f + (state->human.fatigue * 0.15f) + (state->human.exhaustionLevel * 0.2f);
+            float pauseChance = 0.03f + (state->human.fatigue * 0.05f);
             if (randomFloat(state) < pauseChance) {
-                int pauseDuration = (int)(5.0f + (state->human.exhaustionLevel * 15.0f));
-                state->human.microPauseCounter = -pauseDuration;
+                state->human.microPauseCounter = -(int)randomRange(1.0f, 3.0f, state);
             } else {
                 state->human.microPauseCounter = 0;
             }
@@ -295,67 +205,70 @@ static void updateHumanState(RandomState *state, bool isActivelyClicking) {
     }
 }
 
-// Calculate CPS with proper bounds
+// Natural CPS calculation with proper variance
 static float calculateHumanCPS(clickerConfig *clicker, RandomState *state, bool isActivelyClicking) {
     updateHumanState(state, isActivelyClicking);
     
     float baseCPS = (float)clicker->inputCPS;
     float modifiedCPS = baseCPS;
     
-    // Moderate behavioral modifiers
+    // Natural human behavioral variation
     modifiedCPS *= state->human.rhythm;
-    modifiedCPS *= (0.75f + state->human.concentration * 0.25f);
+    modifiedCPS *= (0.85f + state->human.concentration * 0.15f);
     
-    // Reduced exhaustion impact
-    if (state->human.exhaustionLevel > 0.05f) {
-        float exhaustionMultiplier = 1.0f - (state->human.exhaustionLevel * 0.4f);
-        modifiedCPS *= exhaustionMultiplier;
-        
-        if (randomFloat(state) < state->human.exhaustionLevel * 0.05f) {
-            modifiedCPS *= 0.6f;
-        }
+    // Light fatigue effects
+    if (state->human.exhaustionLevel > 0.01f) {
+        modifiedCPS *= (1.0f - state->human.exhaustionLevel * 0.4f);
     }
     
-    // Shorter, less severe breaks
-    if (state->human.needsBreak) {
-        modifiedCPS *= 0.4f;
-        if (randomFloat(state) < 0.5f) {
-            state->human.needsBreak = false;
-            state->human.lastBreakTime = GetTickCount();
-        }
-        return modifiedCPS;
-    }
-    
-    // Moderate micro-pauses
+    // Natural micro-pauses
     if (state->human.microPauseCounter < 0) {
-        float pauseMultiplier = 0.3f;
-        modifiedCPS *= pauseMultiplier;
+        modifiedCPS *= 0.6f;
         state->human.microPauseCounter++;
         return modifiedCPS;
     }
     
-    // Extremely conservative outlier forcing - barely noticeable
-    if (state->human.outlierForced < 0) {
-        float outlierMultiplier;
-        // Only use very mild outliers
-        if (randomFloat(state) < 0.5f) {
-            outlierMultiplier = randomRange(0.85f, 0.95f, state); // Very mild slow
+    // Natural outliers with proper frequency - every 15-30 clicks
+    if (state->human.outlierForced > (15 + (int)randomRange(0.0f, 15.0f, state))) {
+        float outlierType = randomFloat(state);
+        float outlierStrength = randomFloat(state);
+        
+        if (outlierType < 0.35f) {
+            // Slow outliers (35%)
+            if (outlierStrength < 0.3f) {
+                modifiedCPS *= randomRange(0.3f, 0.6f, state); // Strong slow
+            } else {
+                modifiedCPS *= randomRange(0.6f, 0.8f, state); // Mild slow
+            }
+        } else if (outlierType < 0.7f) {
+            // Fast outliers (35%)
+            if (outlierStrength < 0.3f) {
+                modifiedCPS *= randomRange(1.6f, 2.0f, state); // Strong fast
+            } else {
+                modifiedCPS *= randomRange(1.2f, 1.6f, state); // Mild fast
+            }
         } else {
-            outlierMultiplier = randomRange(1.05f, 1.15f, state); // Very mild fast
+            // Moderate variations (30%)
+            modifiedCPS *= randomRange(0.85f, 1.15f, state);
         }
         
-        modifiedCPS *= outlierMultiplier;
-        state->human.outlierForced++;
-        
-        // Skip other modifications for clean outliers
+        state->human.outlierForced = 0;
         goto bounds_check;
     }
     
-    // Enhanced temporal clustering
-    if (!state->inCluster && randomFloat(state) < (0.12f + state->human.fatigue * 0.03f)) {
+    // Natural clustering with realistic patterns
+    if (!state->inCluster && randomFloat(state) < (0.06f + state->human.fatigue * 0.02f)) {
         state->inCluster = true;
-        state->clusterRemaining = (int)randomRange(3.0f, 7.0f, state);
-        state->clusterSpeedModifier = randomRange(0.8f, 1.3f, state);
+        state->clusterRemaining = (int)randomRange(2.0f, 6.0f, state);
+        // More varied cluster speeds
+        float clusterRoll = randomFloat(state);
+        if (clusterRoll < 0.3f) {
+            state->clusterSpeedModifier = randomRange(0.8f, 0.9f, state); // Slow cluster
+        } else if (clusterRoll < 0.6f) {
+            state->clusterSpeedModifier = randomRange(1.1f, 1.2f, state); // Fast cluster
+        } else {
+            state->clusterSpeedModifier = randomRange(0.95f, 1.05f, state); // Normal cluster
+        }
     }
     
     if (state->inCluster) {
@@ -366,59 +279,60 @@ static float calculateHumanCPS(clickerConfig *clicker, RandomState *state, bool 
         }
     }
     
-    // Standard burst/drop system with fatigue influence
+    // Enhanced burst/drop system
     if (state->remainingTicks > 0) {
-        float concentrationFactor = 0.5f + state->human.concentration * 0.5f;
+        float concentrationFactor = 0.7f + state->human.concentration * 0.3f;
+        float proposedCPS = modifiedCPS + (state->cpsModifier * concentrationFactor);
+        
+        if (state->cpsModifier > 0) {
+            float maxCPS = baseCPS + (float)clicker->spikeCPS;
+            if (proposedCPS > maxCPS) {
+                state->cpsModifier = (int)(maxCPS - modifiedCPS);
+            }
+        }
         modifiedCPS += state->cpsModifier * concentrationFactor;
         state->remainingTicks--;
     } else {
         float randomVal = randomFloat(state) * 100.0f;
-        float fatigueMultiplier = 1.0f + (state->human.fatigue * 0.8f) + (state->human.exhaustionLevel * 0.6f);
+        float fatigueInfluence = 1.0f + (state->human.fatigue * 0.3f);
         
-        if (randomVal < clicker->dropChance * fatigueMultiplier) {
-            int dropIntensity = (int)randomRange(1.0f, (float)clicker->dropCPS + 1.0f, state);
-            if (state->human.exhaustionLevel > 0.1f) {
-                dropIntensity += (int)(state->human.exhaustionLevel * 20.0f);
-            }
-            state->cpsModifier = -dropIntensity;
-            state->remainingTicks = (int)randomRange(2.0f, 5.0f, state);
+        if (randomVal < clicker->dropChance * fatigueInfluence) {
+            state->cpsModifier = -(int)randomRange(1.0f, (float)clicker->dropCPS + 1.0f, state);
+            state->remainingTicks = (int)randomRange(1.0f, 3.0f, state);
             modifiedCPS += state->cpsModifier;
-        } else if (randomVal < (clicker->dropChance + clicker->spikeChance) * (2.2f - fatigueMultiplier * 0.6f)) {
-            int spikeIntensity = (int)randomRange(1.0f, (float)clicker->spikeCPS + 1.0f, state);
-            spikeIntensity = (int)(spikeIntensity * (1.0f - state->human.exhaustionLevel * 0.3f));
-            state->cpsModifier = spikeIntensity;
-            state->remainingTicks = (int)randomRange(2.0f, 4.0f, state);
+        } else if (randomVal < (clicker->dropChance + clicker->spikeChance) * (1.8f - fatigueInfluence * 0.2f)) {
+            int spike = (int)randomRange(1.0f, (float)clicker->spikeCPS + 1.0f, state);
+            float maxCPS = baseCPS + (float)clicker->spikeCPS;
+            if (modifiedCPS + spike > maxCPS) {
+                spike = (int)(maxCPS - modifiedCPS);
+                if (spike < 1) spike = 1;
+            }
+            state->cpsModifier = spike;
+            state->remainingTicks = (int)randomRange(1.0f, 3.0f, state);
             modifiedCPS += state->cpsModifier;
         }
     }
     
-    // Extremely conservative kurtosis manipulation - barely detectable
-    float kurtosisPhase = fmodf(state->human.kurtosisCounter, 120.0f); // Even longer cycle
-    if (kurtosisPhase < 60.0f) {
-        // High kurtosis period - normal Gaussian behavior
-        float kurtosisVariation = gaussianRandom(0.0f, baseCPS * 0.015f, state); // Very small variation
-        modifiedCPS += kurtosisVariation;
-    } else {
-        // Low kurtosis period - extremely conservative
-        float kurtosisVariation = randomRange(-baseCPS * 0.04f, baseCPS * 0.04f, state); // Very small range
-        // Heavy Gaussian component to maintain normal-ish distribution
-        kurtosisVariation += gaussianRandom(0.0f, baseCPS * 0.06f, state); // Dominant Gaussian
-        modifiedCPS += kurtosisVariation;
-    }
+    // Multi-layered natural variation for proper variance
+    float primaryVariation = gaussianRandom(0.0f, baseCPS * 0.015f, state);
+    float secondaryVariation = randomRange(-baseCPS * 0.012f, baseCPS * 0.012f, state);
+    float microVariation = gaussianRandom(0.0f, baseCPS * 0.008f, state);
     
-    // Minimal natural micro-variations
-    float microVariation = gaussianRandom(0.0f, baseCPS * 0.02f, state); // Further reduced
-    modifiedCPS += microVariation;
+    modifiedCPS += primaryVariation + secondaryVariation + microVariation;
     
-    // Very conservative momentary bias
-    state->momentaryBias += randomRange(-0.03f, 0.03f, state); // Further reduced
-    state->momentaryBias *= 0.99f; // Even faster decay
-    modifiedCPS += state->momentaryBias;
+    // Natural momentum/bias that creates realistic deviation patterns
+    float momentumChange = randomRange(-0.015f, 0.015f, state);
+    state->momentaryBias += momentumChange;
+    state->momentaryBias *= 0.992f; // Slow decay
+    
+    // Apply bias with concentration influence
+    float biasStrength = 1.0f - (state->human.concentration * 0.3f);
+    modifiedCPS += state->momentaryBias * biasStrength;
 
 bounds_check:
-    // Tighter bounds - should not exceed inputCPS + spikeCPS
-    float minCPS = baseCPS * 0.7f; // 70% minimum
-    float maxCPS = baseCPS + (float)clicker->spikeCPS; // inputCPS + spikeCPS maximum
+    // Natural bounds - not too restrictive
+    float minCPS = baseCPS * 0.75f;
+    float maxCPS = baseCPS + (float)clicker->spikeCPS;
     
     if (modifiedCPS < minCPS) modifiedCPS = minCPS;
     if (modifiedCPS > maxCPS) modifiedCPS = maxCPS;
@@ -426,27 +340,23 @@ bounds_check:
     return modifiedCPS;
 }
 
-// Main click interval calculation with activity detection
+// Natural interval calculation with proper variance
 float getClickInterval(clickerConfig *clicker, RandomState *state) {
-    // Determine if actively clicking based on recent call frequency
     DWORD currentTimeMs = GetTickCount();
     bool isActivelyClicking = (currentTimeMs - state->human.lastActiveTime) < 1000;
     
     float cps = calculateHumanCPS(clicker, state, isActivelyClicking);
     float baseInterval = 1000.0f / cps;
     
-    // Calculate current time for adaptive timing
     LARGE_INTEGER currentTime;
     QueryPerformanceCounter(&currentTime);
     
     if (state->lastClickTime.QuadPart != 0) {
         float actualInterval = (float)(currentTime.QuadPart - state->lastClickTime.QuadPart) / state->frequency.QuadPart * 1000.0f;
-        
-        // Store in recent intervals
         state->recentIntervals[state->intervalIndex] = actualInterval;
         state->intervalIndex = (state->intervalIndex + 1) % 16;
         
-        // Extremely conservative consistency analysis - almost never trigger
+        // Natural variance enhancement - if recent intervals are too similar
         float sum = 0, count = 0;
         for (int i = 0; i < 16; i++) {
             if (state->recentIntervals[i] > 0) {
@@ -455,7 +365,7 @@ float getClickInterval(clickerConfig *clicker, RandomState *state) {
             }
         }
         
-        if (count > 14) { // Only analyze when buffer is almost full
+        if (count > 8) {
             float recentMean = sum / count;
             float variance = 0;
             for (int i = 0; i < 16; i++) {
@@ -465,31 +375,31 @@ float getClickInterval(clickerConfig *clicker, RandomState *state) {
                 }
             }
             variance /= count;
-            float stddev = sqrtf(variance);
             
-            // Extremely high threshold - only intervene if impossibly consistent
-            float consistencyRatio = stddev / recentMean;
-            if (consistencyRatio < 0.03f) { // Further reduced from 0.05f
-                baseInterval += randomRange(-baseInterval * 0.05f, baseInterval * 0.05f, state); // Minimal variation
+            // If variance is too low, add natural human inconsistency
+            if (variance < (recentMean * recentMean * 0.004f)) { // Less than 6.3% CV
+                float varianceBoost = randomRange(-baseInterval * 0.2f, baseInterval * 0.2f, state);
+                baseInterval += varianceBoost;
             }
         }
     }
     
     state->lastClickTime = currentTime;
     
-    // Very conservative human inconsistency
-    float humanVariation = state->baseVariation * baseInterval * (1.0f + state->human.fatigue * 0.2f); // Further reduced
+    // Enhanced natural timing variation
+    float concentrationEffect = (1.0f - state->human.concentration) * 0.05f;
+    float fatigueEffect = state->human.fatigue * 0.03f;
+    float baseVariation = state->baseVariation + concentrationEffect + fatigueEffect;
     
-    // Minimal kurtosis-based variation
-    float kurtosisPhase = fmodf(state->human.kurtosisCounter, 120.0f);
-    if (kurtosisPhase >= 60.0f) {
-        humanVariation *= 1.1f; // Minimal increase from 1.3f
-    }
+    // Multiple sources of natural variation
+    float humanVariation = baseVariation * baseInterval;
+    float attentionVariation = randomRange(-baseInterval * 0.04f, baseInterval * 0.04f, state);
+    float muscleVariation = gaussianRandom(0.0f, baseInterval * 0.02f, state);
     
-    float finalInterval = gaussianRandom(baseInterval, humanVariation, state);
+    float totalVariation = humanVariation + attentionVariation + muscleVariation;
+    float finalInterval = gaussianRandom(baseInterval, totalVariation, state);
     
-    // Ensure minimum interval for usability
-    if (finalInterval < 8.0f) finalInterval = 8.0f;
+    if (finalInterval < 12.0f) finalInterval = 12.0f;
     
     return finalInterval;
 }

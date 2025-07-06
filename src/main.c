@@ -182,9 +182,22 @@ int main() {
             } else if (config.leftActive && GetAsyncKeyState(VK_LBUTTON) != 0x8000) {
                 PlaySoundA(NULL, NULL, SND_PURGE);
                 
-                // Allow fatigue recovery when not clicking
-                if ((GetTickCount() - randState.human.lastActiveTime) > 2000) {
+                // Allow fatigue recovery when not clicking - but don't let fatigue increase
+                DWORD timeSinceActive = GetTickCount() - randState.human.lastActiveTime;
+                if (timeSinceActive > 2000) {
+                    // Store current fatigue to prevent it from increasing
+                    float currentFatigue = randState.human.fatigue;
+                    float currentExhaustion = randState.human.exhaustionLevel;
+                    
                     getClickInterval(&clicker, &randState); // Update state for recovery
+                    
+                    // Ensure fatigue never increases during rest
+                    if (randState.human.fatigue > currentFatigue) {
+                        randState.human.fatigue = currentFatigue;
+                    }
+                    if (randState.human.exhaustionLevel > currentExhaustion) {
+                        randState.human.exhaustionLevel = currentExhaustion;
+                    }
                 }
             }
 
