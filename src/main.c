@@ -142,56 +142,68 @@ int main() {
 
     while (true) {
         HWND currentWindow = GetForegroundWindow();
-        HWND minecraftRecent = FindWindowA("GLFW30", NULL);
-        HWND minecraftOld = FindWindowA("LWJGL", NULL);
-        HWND minecraftBedrock = FindWindowA("ApplicationFrameWindow", NULL);
+        
+        static HWND minecraftRecent = NULL;
+        static HWND minecraftOld = NULL;
+        static HWND minecraftBedrock = NULL;
+        static DWORD lastWindowCheck = 0;
+        
+        DWORD currentTime = GetTickCount();
+        if (currentTime - lastWindowCheck > 1000) {
+            minecraftRecent = FindWindowA("GLFW30", NULL);
+            minecraftOld = FindWindowA("LWJGL", NULL);
+            minecraftBedrock = FindWindowA("ApplicationFrameWindow", NULL);
+            lastWindowCheck = currentTime;
+        }
 
-        if (config.mcOnly && currentWindow != minecraftRecent && currentWindow != minecraftOld && currentWindow != minecraftBedrock) continue;
+        if (config.mcOnly && currentWindow != minecraftRecent && currentWindow != minecraftOld && currentWindow != minecraftBedrock) {
+            Sleep(50);
+            continue;
+        }
 
-        else {
-            // AutoClicker Logic
-            if (config.leftActive && GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
-                if (config.clickInventory || !cursorVisible()) {
+        // AutoClicker Logic
+        if (config.leftActive && GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
+            if (config.clickInventory || !cursorVisible()) {
 
-                    float durationClick = getClickDuration(&clicker, &randState);
-                    float clickInterval = getClickInterval(&clicker, &randState);
-                    
-                    // Soundclicks
-                    if (config.soundClicks) {
-                        DWORD soundSize;
-                        char* soundData = getRandomWavData(&soundCollection, &soundSize);
-                        if (soundData) {
-                            PlaySoundA(soundData, NULL, SND_MEMORY | SND_SYSTEM | SND_NOSTOP | SND_ASYNC);
-                        }
-                    }
-
-                    // Calculate delay between clicks
-                    float delayAfterClick = clickInterval - durationClick;
-                    if (delayAfterClick < 5) delayAfterClick = 5;
-
-                    // Main clicking logic
-                    sendLeftClickDown(true);
-                    Sleep((int)durationClick);
-
-                    if (!config.breakBlocks) {
-                        sendLeftClickDown(false);
-                    }
-
-                    Sleep((int)delayAfterClick);
-                }
-            } else if (config.leftActive && GetAsyncKeyState(VK_LBUTTON) != 0x8000) {
-                PlaySoundA(NULL, NULL, SND_PURGE);
+                float durationClick = getClickDuration(&clicker, &randState);
+                float clickInterval = getClickInterval(&clicker, &randState);
                 
-                // Allow fatigue recovery when not clicking - but don't let fatigue increase
-                DWORD timeSinceActive = GetTickCount() - randState.human.lastActiveTime;
+                // Soundclicks
+                if (config.soundClicks) {
+                    DWORD soundSize;
+                    char* soundData = getRandomWavData(&soundCollection, &soundSize);
+                    if (soundData) {
+                        PlaySoundA(soundData, NULL, SND_MEMORY | SND_SYSTEM | SND_NOSTOP | SND_ASYNC);
+                    }
+                }
+
+                // Calculate delay between clicks
+                float delayAfterClick = clickInterval - durationClick;
+                if (delayAfterClick < 5) delayAfterClick = 5;
+
+                // Main clicking logic
+                sendLeftClickDown(true);
+                Sleep((int)durationClick);
+
+                if (!config.breakBlocks) {
+                    sendLeftClickDown(false);
+                }
+
+                Sleep((int)delayAfterClick);
+            }
+        } else if (config.leftActive) {
+            PlaySoundA(NULL, NULL, SND_PURGE);
+            
+            // Reduce calculation frequency when idle
+            static DWORD lastIdleUpdate = 0;
+            if (currentTime - lastIdleUpdate > 100) {
+                DWORD timeSinceActive = currentTime - randState.human.lastActiveTime;
                 if (timeSinceActive > 2000) {
-                    // Store current fatigue to prevent it from increasing
                     float currentFatigue = randState.human.fatigue;
                     float currentExhaustion = randState.human.exhaustionLevel;
                     
-                    getClickInterval(&clicker, &randState); // Update state for recovery
+                    getClickInterval(&clicker, &randState);
                     
-                    // Ensure fatigue never increases during rest
                     if (randState.human.fatigue > currentFatigue) {
                         randState.human.fatigue = currentFatigue;
                     }
@@ -199,26 +211,31 @@ int main() {
                         randState.human.exhaustionLevel = currentExhaustion;
                     }
                 }
+                lastIdleUpdate = currentTime;
             }
+            Sleep(1);
+        }
 
-            // Click Player Logic
-            if (config.playerActive && GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
-                config.leftActive = false;
+        // Click Player Logic
+        if (config.playerActive && GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
+            config.leftActive = false;
 
-                if (config.clickInventory || !cursorVisible()) {
-
-                    // Soundclicks
-                    if (config.soundClicks) {
-                        DWORD soundSize;
-                        char* soundData = getRandomWavData(&soundCollection, &soundSize);
-                        if (soundData) {
-                            PlaySoundA(soundData, NULL, SND_MEMORY | SND_SYSTEM | SND_NOSTOP | SND_ASYNC);
-                        }
+            if (config.clickInventory || !cursorVisible()) {
+                if (config.soundClicks) {
+                    DWORD soundSize;
+                    char* soundData = getRandomWavData(&soundCollection, &soundSize);
+                    if (soundData) {
+                        PlaySoundA(soundData, NULL, SND_MEMORY | SND_SYSTEM | SND_NOSTOP | SND_ASYNC);
                     }
                 }
-            } else if (config.playerActive && GetAsyncKeyState(VK_LBUTTON) != 0x8000) {
-                PlaySoundA(NULL, NULL, SND_PURGE);
             }
+        } else if (config.playerActive) {
+            PlaySoundA(NULL, NULL, SND_PURGE);
+            Sleep(1);
+        }
+        
+        if (!((config.leftActive && GetAsyncKeyState(VK_LBUTTON) & 0x8000) || (config.playerActive && GetAsyncKeyState(VK_LBUTTON) & 0x8000))) {
+            Sleep(1);
         }
     }
 

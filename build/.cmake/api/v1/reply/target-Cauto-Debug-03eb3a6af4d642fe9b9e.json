@@ -15,6 +15,8 @@
 		[
 			"_add_executable",
 			"add_executable",
+			"_install",
+			"install",
 			"target_link_libraries"
 		],
 		"files" : 
@@ -30,7 +32,7 @@
 			{
 				"command" : 1,
 				"file" : 1,
-				"line" : 9,
+				"line" : 8,
 				"parent" : 0
 			},
 			{
@@ -40,9 +42,21 @@
 				"parent" : 1
 			},
 			{
-				"command" : 2,
+				"command" : 3,
 				"file" : 1,
-				"line" : 13,
+				"line" : 14,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 720,
+				"parent" : 3
+			},
+			{
+				"command" : 4,
+				"file" : 1,
+				"line" : 12,
 				"parent" : 0
 			}
 		]
@@ -64,6 +78,20 @@
 		}
 	],
 	"id" : "Cauto::@6890427a1f51a3e7e1df",
+	"install" : 
+	{
+		"destinations" : 
+		[
+			{
+				"backtrace" : 4,
+				"path" : "bin"
+			}
+		],
+		"prefix" : 
+		{
+			"path" : "C:/Program Files (x86)/Cauto"
+		}
+	},
 	"link" : 
 	{
 		"commandFragments" : 
@@ -73,7 +101,7 @@
 				"role" : "flags"
 			},
 			{
-				"backtrace" : 3,
+				"backtrace" : 5,
 				"fragment" : "-lwinmm",
 				"role" : "libraries"
 			},
