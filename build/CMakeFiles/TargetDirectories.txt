@@ -1,0 +1,3 @@
+D:/Repositories/Cauto/build/CMakeFiles/Cauto.dir
+D:/Repositories/Cauto/build/CMakeFiles/edit_cache.dir
+D:/Repositories/Cauto/build/CMakeFiles/rebuild_cache.dir
