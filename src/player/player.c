@@ -1,4 +1,4 @@
 #include "../resources/include.c"
 
-#include "clickPlayer.h"
+#include "player.h"
 #include "../utils/utils.h"

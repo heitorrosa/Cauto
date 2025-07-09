@@ -2,6 +2,7 @@
 #define CLICKER_H
 
 #include "../resources/include.c"
+#include "../utils/utils.h"
 
 typedef struct {
     int inputCPS;

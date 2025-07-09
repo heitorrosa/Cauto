@@ -6,6 +6,12 @@
 #include "clicker/clicker.h"
 #include "clicker/clicker.c"
 
+#include "player/player.h"
+#include "player/player.c"
+
+#include "recorder/recorder.h"
+#include "recorder/recorder.c"
+
 #include "utils/hwid.c"
 
 int main() {
@@ -28,13 +34,14 @@ int main() {
 
     globalConfig config;
     clickerConfig clicker;
+    clickRecorder recorder;
     RandomState randState;
     WavCollection soundCollection = {0};
 
     initGlobalConfig(&config);
     initClickerConfig(&clicker);
     initRandomState(&randState);
-    
+
     int mode;
 
     printf("Select the desired mode:\n");
@@ -96,9 +103,10 @@ int main() {
 
             int choice;
 
-                printf("1. Input a config\n\n");
+                printf("\n\n1. Input a config\n");
                 printf("2. Butterfly Click Profile (10k Clicks)\n");
                 printf("3. Jitter Click Profile (10k Clicks)\n");
+                printf("4. Record Clicks\n\n");
                 printf("Input your choice: ");
                 scanf_s("%d", &choice);
 
@@ -112,6 +120,10 @@ int main() {
                     case 3:
                         break;
 
+                    case 4:
+                        recordClicks();
+                        break;
+
                     default:
                         printf("Invalid choice. Please select a valid option.\n");
                         break;
@@ -120,10 +132,8 @@ int main() {
 
         default:
             printf("Invalid mode selected. Please choose 1 or 2.\n");
-            return 1;
+            break;
     }
-
-    fflush(stdin);
 
     if (config.soundClicks) {
         printf("Select WAV sound files for clicks...\n");
@@ -135,10 +145,6 @@ int main() {
             config.soundClicks = false;
         }
     }
-
-
-
-
 
     while (true) {
         HWND currentWindow = GetForegroundWindow();
@@ -161,13 +167,10 @@ int main() {
             continue;
         }
 
-        // AutoClicker Logic
+        // Clicker Logic
         if (config.leftActive && GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
             if (config.clickInventory || !cursorVisible()) {
 
-                float durationClick = getClickDuration(&clicker, &randState);
-                float clickInterval = getClickInterval(&clicker, &randState);
-                
                 // Soundclicks
                 if (config.soundClicks) {
                     DWORD soundSize;
@@ -177,11 +180,12 @@ int main() {
                     }
                 }
 
-                // Calculate delay between clicks
+                float durationClick = getClickDuration(&clicker, &randState);
+                float clickInterval = getClickInterval(&clicker, &randState);
+                
                 float delayAfterClick = clickInterval - durationClick;
                 if (delayAfterClick < 5) delayAfterClick = 5;
 
-                // Main clicking logic
                 sendLeftClickDown(true);
                 Sleep((int)durationClick);
 
@@ -216,11 +220,14 @@ int main() {
             Sleep(1);
         }
 
-        // Click Player Logic
+
+        // Player Logic
         if (config.playerActive && GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
             config.leftActive = false;
 
             if (config.clickInventory || !cursorVisible()) {
+
+                // Soundclicks
                 if (config.soundClicks) {
                     DWORD soundSize;
                     char* soundData = getRandomWavData(&soundCollection, &soundSize);
@@ -228,13 +235,11 @@ int main() {
                         PlaySoundA(soundData, NULL, SND_MEMORY | SND_SYSTEM | SND_NOSTOP | SND_ASYNC);
                     }
                 }
+
+
             }
         } else if (config.playerActive) {
             PlaySoundA(NULL, NULL, SND_PURGE);
-            Sleep(1);
-        }
-        
-        if (!((config.leftActive && GetAsyncKeyState(VK_LBUTTON) & 0x8000) || (config.playerActive && GetAsyncKeyState(VK_LBUTTON) & 0x8000))) {
             Sleep(1);
         }
     }
