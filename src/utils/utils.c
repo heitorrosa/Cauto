@@ -6,9 +6,9 @@ void initGlobalConfig(globalConfig *config) {
     config->leftActive = true;
     config->playerActive = false;
 
-    config->mcOnly = false;
-    config->clickInventory = true;
-    config->breakBlocks = false;
+    config->mcOnly = true;
+    config->clickInventory = false;
+    config->breakBlocks = true;
     config->soundClicks = true;
 }
 
