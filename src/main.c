@@ -188,7 +188,7 @@ int main() {
             scanf_s(" %c", &recorder.mcOnly);
 
             fflush(stdin);
-            
+
             recordClicks(&recorder);
             break;
 
@@ -227,7 +227,10 @@ int main() {
             lastWindowCheck = currentTime;
         }
 
-        if (config.mcOnly && currentWindow != minecraftRecent && currentWindow != minecraftOld && currentWindow != minecraftBedrock) {
+        if (config.mcOnly &&
+            currentWindow != minecraftRecent &&
+            currentWindow != minecraftOld &&
+            currentWindow != minecraftBedrock) {
             Sleep(50);
         }
 
