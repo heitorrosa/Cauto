@@ -8,7 +8,7 @@ void initGlobalConfig(globalConfig *config) {
 
     config->mcOnly = true;
     config->clickInventory = false;
-    config->breakBlocks = false;
+    config->breakBlocks = true;
     config->soundClicks = true;
 }
 
