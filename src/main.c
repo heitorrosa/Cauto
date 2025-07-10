@@ -70,7 +70,7 @@ int main() {
                 return 1;
             }
 
-            printf("Select the minimum click duration (ms): ");
+            printf("\nSelect the minimum click duration (ms): ");
             scanf_s("%f", &clicker.minDurationClick);
             if(clicker.minDurationClick < 10) {
                 printf("The click duration must be greater than 10.\n");
@@ -84,7 +84,7 @@ int main() {
                 return 1;
             }
 
-            printf("CPS Drop chance (%%): ");
+            printf("\nCPS Drop chance (%%): ");
             scanf_s("%f", &clicker.dropChance);
             if(clicker.dropChance < 0 || clicker.dropChance > 100) {
                 printf("The drop chance must be between 0 and 100.\n");
@@ -94,7 +94,7 @@ int main() {
             printf("Amount of CPS in the DROP: ");
             scanf_s("%d", &clicker.dropCPS);
 
-            printf("CPS Spike chance (%%): ");
+            printf("\nCPS Spike chance (%%): ");
             scanf_s("%f", &clicker.spikeChance);
             if(clicker.spikeChance < 0 || clicker.spikeChance > 100) {
                 printf("The spike chance must be between 0 and 100.\n");
@@ -200,7 +200,7 @@ int main() {
 
     // SoundClicks selector
     if (config.soundClicks) {
-        printf("Select WAV sound files for clicks...\n");
+        printf("\nSelect WAV sound files for clicks...\n");
         
         if (openWavFileDialog(&soundCollection)) {
             printf("Loaded %d WAV file(s) successfully.\n", soundCollection.count);
