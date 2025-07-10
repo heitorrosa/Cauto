@@ -50,7 +50,6 @@ int main() {
     printf("Select the desired mode:\n\n");
 
     printf("1. Standard Clicker\n");
-
     printf("2. Click Player (RECOMMENDED)\n");
     printf("3. Click Recorder\n\n");
 
@@ -131,10 +130,8 @@ int main() {
                             clearScreen();
                             printf("\nEnter raw config: ");
                             
-                            // Clear input buffer
-                            int c;
-                            while ((c = getchar()) != '\n' && c != EOF);
-                            
+                            fflush(stdin);
+
                             char* rawConfig = malloc(100000); // 100KB for large configs
                             if (!rawConfig) {
                                 printf("Error: Memory allocation failed\n");
@@ -148,7 +145,6 @@ int main() {
                                     PlayerConfig* config = getPlayerConfig(true, rawConfig);
                                     if (config) {
                                         printf("Successfully loaded config!\n");
-                                        freePlayerConfig(config);
                                     }
                                 } else {
                                     printf("No config data entered.\n");
@@ -178,24 +174,22 @@ int main() {
         case 3:
             clearScreen();
             
-            fflush(stdin);
-
-            printf("Beep on Start/End? (Y or N): \n");
-            scanf_s("%c", &recorder.beepOnStart);
+            printf("Bind Key for Recording (default: INSERT): ");
+            scanf_s(" %c", &recorder.bindKey);
 
             fflush(stdin);
 
-            printf("Minecraft Only Recording? (Y or N): \n");
-            scanf_s("%c", &recorder.mcOnly);
+            printf("Beep on Start/End? (Y or N): ");
+            scanf_s(" %c", &recorder.beepOnStart);
 
             fflush(stdin);
 
-            printf("Bind Key for Recording (default: INSERT): \n");
-            scanf_s("%c", &recorder.bindKey);
+            printf("Minecraft Only Recording? (Y or N): ");
+            scanf_s(" %c", &recorder.mcOnly);
 
             fflush(stdin);
-
-            recordClicks();
+            
+            recordClicks(&recorder);
             break;
 
         default:

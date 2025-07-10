@@ -3,7 +3,26 @@
 #include "../utils/utils.h"
 #include "../utils/crypto.h"
 
-clickRecorder recorder;
+// Helper function to convert character to virtual key code
+static int charToVirtualKey(char c) {
+    if (c >= 'a' && c <= 'z') {
+        return c - 'a' + 'A'; // Convert to uppercase
+    }
+    if (c >= 'A' && c <= 'Z') {
+        return c; // Already uppercase
+    }
+    if (c >= '0' && c <= '9') {
+        return c; // Numbers work directly
+    }
+    
+    // Special cases
+    switch (c) {
+        case ' ': return VK_SPACE;
+        case '\t': return VK_TAB;
+        case '\n': case '\r': return VK_RETURN;
+        default: return VK_INSERT; // Default fallback
+    }
+}
 
 // Helper functions
 static void generate_random_string(char* output, int length) {
@@ -16,9 +35,9 @@ static void generate_random_string(char* output, int length) {
 }
 
 static void updateDisplay(int unified, int doubles, int total, LARGE_INTEGER firstClick, 
-                         LARGE_INTEGER now, LARGE_INTEGER freq, bool showDebug) {
+                         LARGE_INTEGER now, LARGE_INTEGER freq, bool showDebug, clickRecorder* rec) {
     clearScreen();
-    printf("Click Recorder\nPress '%c' to stop and save\n\n", recorder.bindKey);
+    printf("Press '%c' to stop and save\n\n", rec->bindKey);
     printf("Recorded Clicks: %d (%d Double Clicks)\n", unified, doubles);
     
     if (firstClick.QuadPart != 0 && total > 1) {
@@ -117,58 +136,80 @@ static char* saveConfig(const char* configName, UnifiedClick* clicks, int unifie
     return hexData;
 }
 
-// Main recording function - keeps all original features
-char* recordClicks() {
+char* recordClicks(clickRecorder* rec) {
+
     // Initialize variables
     LARGE_INTEGER freq, start = {0}, lastUp = {0}, firstClick = {0};
     static UnifiedClick clicks[MAX_CLICKS];
     int unified = 0, doubles = 0, total = 0, nextId = 1;
     BOOL wasPressed = FALSE;
     
+    // Convert character to virtual key code
+    int bindKeyVK = charToVirtualKey(rec->bindKey);
+    
     if (!QueryPerformanceFrequency(&freq)) {
         printf("Error: Performance counter not available.\n");
         return NULL;
     }
     
-    // Initial display
-    updateDisplay(unified, doubles, total, firstClick, firstClick, freq, false);
+    HWND currentWindow = GetForegroundWindow();
+    HWND minecraftRecent = FindWindowA("GLFW30", NULL);
+    HWND minecraftOld = FindWindowA("LWJGL", NULL);
+    HWND minecraftBedrock = FindWindowA("ApplicationFrameWindow", NULL);
+
+    updateDisplay(unified, doubles, total, firstClick, firstClick, freq, false, rec);
     
-    printf("Press '%c' to start recording...\n", recorder.bindKey);
+    printf("Press '%c' to start recording...\n", rec->bindKey);
     
-    // Wait for bind key to start recording
-    while (!(GetAsyncKeyState(recorder.bindKey) & 0x8000)) {
+    while (!(GetAsyncKeyState(bindKeyVK) & 0x8000)) {
         Sleep(10);
     }
     
-    // Wait for key release to avoid immediate retrigger
-    while (GetAsyncKeyState(recorder.bindKey) & 0x8000) {
+    while (GetAsyncKeyState(bindKeyVK) & 0x8000) {
         Sleep(10);
     }
     
-    if (recorder.beepOnStart == 'Y' || recorder.beepOnStart == 'y') {
+    if (rec->beepOnStart == 'Y' || rec->beepOnStart == 'y') {
         Beep(1000, 500);
     }
     
-    printf("Recording started! Press '%c' again to stop and save...\n", recorder.bindKey);
+    printf("Recording started! Press '%c' again to stop and save...\n", rec->bindKey);
     
-    // Main recording loop - toggle with bind key
-    while (!(GetAsyncKeyState(recorder.bindKey) & 0x8000)) {
+    while (!(GetAsyncKeyState(bindKeyVK) & 0x8000)) {
+        if (rec->mcOnly == 'Y' || rec->mcOnly == 'y') {
+            static DWORD lastWindowCheck = 0;
+            DWORD currentTime = GetTickCount();
+            
+            if (currentTime - lastWindowCheck > 1000) {
+                currentWindow = GetForegroundWindow();
+                minecraftRecent = FindWindowA("GLFW30", NULL);
+                minecraftOld = FindWindowA("LWJGL", NULL);
+                minecraftBedrock = FindWindowA("ApplicationFrameWindow", NULL);
+                lastWindowCheck = currentTime;
+            }
+            
+            if (currentWindow != minecraftRecent && 
+                currentWindow != minecraftOld && 
+                currentWindow != minecraftBedrock) {
+                Sleep(50);
+                continue;
+            }
+        }
+        
         BOOL isPressed = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
         
         if (isPressed && !wasPressed) {
-            // Button pressed
             LARGE_INTEGER now;
             QueryPerformanceCounter(&now);
             if (firstClick.QuadPart == 0) firstClick = now;
             start = now;
-            updateDisplay(unified, doubles, total, firstClick, now, freq, false);
+            updateDisplay(unified, doubles, total, firstClick, now, freq, false, rec);
         }
         else if (!isPressed && wasPressed) {
-            // Button released
             LARGE_INTEGER now;
             QueryPerformanceCounter(&now);
             processClickRelease(now, start, lastUp, freq, clicks, &unified, &doubles, &total, &nextId);
-            updateDisplay(unified, doubles, total, firstClick, now, freq, true);
+            updateDisplay(unified, doubles, total, firstClick, now, freq, true, rec);
             lastUp = now;
         }
         
@@ -176,16 +217,14 @@ char* recordClicks() {
         Sleep(1);
     }
     
-    // Wait for key release
-    while (GetAsyncKeyState(recorder.bindKey) & 0x8000) {
+    while (GetAsyncKeyState(bindKeyVK) & 0x8000) {
         Sleep(10);
     }
     
-    if (recorder.beepOnStart == 'Y' || recorder.beepOnStart == 'y') {
-        Beep(500, 300);  // Different tone for stop
+    if (rec->beepOnStart == 'Y' || rec->beepOnStart == 'y') {
+        Beep(500, 300);
     }
     
-    // Final statistics
     printf("\nFinal Statistics\nTotal clicks: %d (%d Double clicks)\n", total, doubles);
     
     double finalCPS = 0.0;
@@ -197,13 +236,11 @@ char* recordClicks() {
         printf("Average CPS: %.2f\n", finalCPS);
     }
     
-    // Get config name
+    fflush(stdin);
+
     char configName[256];
     printf("\nEnter a name for this click configuration: ");
     fflush(stdout);
-    
-    int c;
-    while ((c = getchar()) != '\n' && c != EOF);
     
     if (fgets(configName, sizeof(configName), stdin)) {
         configName[strcspn(configName, "\n")] = 0;

@@ -24,6 +24,6 @@ typedef struct {
 } UnifiedClick;
 
 // Recording function - returns encrypted hex config data, keeps all features
-char* recordClicks(void);
+char* recordClicks(clickRecorder* recorder);
 
 #endif // RECORDER_H
