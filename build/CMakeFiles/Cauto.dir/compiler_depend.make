@@ -302,6 +302,7 @@ CMakeFiles/Cauto.dir/src/main.c.obj: D:/Repositories/Cauto/src/main.c \
   D:/Program\ Files/MSYS2/mingw64/lib/gcc/x86_64-w64-mingw32/15.1.0/include/xsavesintrin.h \
   D:/Program\ Files/MSYS2/mingw64/lib/gcc/x86_64-w64-mingw32/15.1.0/include/xtestintrin.h \
   D:/Repositories/Cauto/src/resources/include.c \
+  D:/Repositories/Cauto/src/utils/crypto.h \
   D:/Repositories/Cauto/src/utils/utils.h \
   D:/Repositories/Cauto/src/clicker/clicker.c \
   D:/Repositories/Cauto/src/clicker/clicker.h \
@@ -622,6 +623,8 @@ D:/Program\ Files/MSYS2/mingw64/include/sal.h:
 D:/Program\ Files/MSYS2/mingw64/include/stdio.h:
 
 D:/Program\ Files/MSYS2/mingw64/include/sdks/_mingw_ddk.h:
+
+D:/Repositories/Cauto/src/utils/crypto.h:
 
 D:/Program\ Files/MSYS2/mingw64/include/sec_api/conio_s.h:
 

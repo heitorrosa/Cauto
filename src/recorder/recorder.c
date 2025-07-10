@@ -1,231 +1,216 @@
 #include "../resources/include.c"
-
 #include "recorder.h"
 #include "../utils/utils.h"
+#include "../utils/crypto.h"
 
-// XOR encryption key
-static const char XOR_KEY[] = "6sVKlW/RqcfH5ZbOWF/jjkb7jBbfTZJmgU8fNX/+tpH+b8BXfy08f0RjwMZLvLI/okeC/fZlWpZiNjunOSVfFnHp00vJRcejZ9OuBHJa0M2FO/kQqAU6WaYlPM6CJh5WCtMaVHMSCa64Z0cxQs1RWXuPoERikrMY8KhvANc7lood9IhUd+ZvJ4RfD4rgaBev";
+clickRecorder recorder;
 
-// Function to encrypt/decrypt data using XOR cipher
-void xor_encrypt_decrypt(const char* input, char* output, int length) {
-    int key_len = strlen(XOR_KEY);
+// Helper functions
+static void generate_random_string(char* output, int length) {
+    const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    srand((unsigned int)time(NULL) + GetTickCount());
     for (int i = 0; i < length; i++) {
-        output[i] = input[i] ^ XOR_KEY[i % key_len];
+        output[i] = charset[rand() % (sizeof(charset) - 1)];
     }
+    output[length] = '\0';
 }
 
-// Function to convert binary data to hex string
-void binary_to_hex(const char* binary, char* hex, int length) {
-    for (int i = 0; i < length; i++) {
-        sprintf(hex + (i * 2), "%02X", (unsigned char)binary[i]);
-    }
-    hex[length * 2] = '\0';
-}
-
-// Function to convert hex string to binary data
-int hex_to_binary(const char* hex, char* binary) {
-    int len = strlen(hex);
-    for (int i = 0; i < len; i += 2) {
-        char hex_byte[3] = {hex[i], hex[i + 1], '\0'};
-        binary[i / 2] = (char)strtol(hex_byte, NULL, 16);
-    }
-    return len / 2;
-}
-
-
-// Arrays to store data
-#define MAX_CLICKS 1000000
-static UnifiedClick unifiedClicks[MAX_CLICKS];
-static int unifiedClickCount = 0;
-static int doubleClicks = 0;
-static int totalClicks = 0;
-
-int recordClicks() {
-    LARGE_INTEGER frequency;
-    LARGE_INTEGER startTime = {0};
-    LARGE_INTEGER lastUpTime = {0};
-    LARGE_INTEGER firstClickTime = {0};
-    BOOL wasPressed = FALSE;
-    double currentClickDuration = 0.0;
+static void updateDisplay(int unified, int doubles, int total, LARGE_INTEGER firstClick, 
+                         LARGE_INTEGER now, LARGE_INTEGER freq, bool showDebug) {
+    clearScreen();
+    printf("Click Recorder\nPress '%c' to stop and save\n\n", recorder.bindKey);
+    printf("Recorded Clicks: %d (%d Double Clicks)\n", unified, doubles);
     
-    // Initialize performance counter
-    if (!QueryPerformanceFrequency(&frequency)) {
-        printf("Error: Performance counter not available.\n");
-        return 1;
-    }
-    
-    printf("Monitoring mouse clicks - Press 'INSERT' to quit...\n");
-    
-    while (true) {
-            if (GetAsyncKeyState(VK_INSERT) & 0x8000) {
-                break;
-            }
+    if (firstClick.QuadPart != 0 && total > 1) {
+        double timeSeconds = (double)(now.QuadPart - firstClick.QuadPart) / freq.QuadPart;
+        double currentCPS = total / timeSeconds;
+        printf("Current CPS: %.2f (Time: %.3fs, Total: %d, Recorded: %d)\n", 
+               currentCPS, timeSeconds, total, unified);
         
+        if (showDebug) {
+            printf("DEBUG: First=%lld, Now=%lld, Freq=%lld\n", 
+                   firstClick.QuadPart, now.QuadPart, freq.QuadPart);
+        }
+    }
+}
+
+static void processClickRelease(LARGE_INTEGER now, LARGE_INTEGER start, LARGE_INTEGER lastUp, 
+                               LARGE_INTEGER freq, UnifiedClick* clicks, int* unified, 
+                               int* doubles, int* total, int* nextId) {
+    if (start.QuadPart == 0) return;
+    
+    double duration = (double)(now.QuadPart - start.QuadPart) * 1000.0 / freq.QuadPart;
+    (*total)++;
+    
+    if (lastUp.QuadPart != 0) {
+        double gap = (double)(start.QuadPart - lastUp.QuadPart) * 1000.0 / freq.QuadPart;
+        
+        // Double click detection
+        if (gap < 50.0) (*doubles)++;
+        
+        // Update previous click's delay or remove if gap too large
+        if (duration <= 120.0 && gap <= 200.0 && *unified < MAX_CLICKS) {
+            if (*unified > 0) clicks[*unified - 1].delay = gap;
+        } else if (*unified > 0 && gap > 200.0) {
+            (*unified)--;
+        }
+    }
+    
+    // Add current click if valid
+    if (duration <= 120.0 && *unified < MAX_CLICKS) {
+        clicks[*unified] = (UnifiedClick){*nextId, duration, 0.0, false};
+        (*unified)++;
+    }
+    (*nextId)++;
+}
+
+static char* saveConfig(const char* configName, UnifiedClick* clicks, int unified, 
+                       int total, int doubles, double finalCPS) {
+    // Generate random filename (32 characters, no extension)
+    char filename[256], randomName[33]; // 32 chars + null terminator
+    generate_random_string(randomName, 32);
+    strcpy(filename, randomName);
+    
+    printf("Generated filename: %s\nConfig name: %s\n", filename, configName);
+    
+    // Build config data
+    char* buffer = malloc(100000000);
+    if (!buffer) {
+        printf("Error: Memory allocation failed\n");
+        return NULL;
+    }
+    
+    sprintf(buffer, "[CLICK_RECORDER_DATA]\nconfig_name=%s\ntotal_clicks=%d\n"
+                   "double_clicks=%d\nunified_clicks=%d\naverage_cps=%.2f\n\n[UNIFIED_CLICKS]\n",
+            configName, total, doubles, unified, finalCPS);
+    
+    // Add click data
+    for (int i = 0; i < unified; i++) {
+        char temp[128];
+        sprintf(temp, "%d:%.3f:%.3f%s", clicks[i].id, clicks[i].duration, 
+                clicks[i].delay, (i < unified - 1) ? "," : "");
+        strcat(buffer, temp);
+    }
+    strcat(buffer, "\n");
+    
+    // Encrypt and save
+    int len = strlen(buffer);
+    char* encrypted = malloc(len + 1);
+    char* hexData = malloc(len * 2 + 1);
+    
+    if (encrypted && hexData) {
+        xor_encrypt_decrypt(buffer, encrypted, len);
+        binary_to_hex(encrypted, hexData, len);
+        
+        FILE* file = fopen(filename, "w");
+        if (file) {
+            fprintf(file, "%s", hexData);
+            fclose(file);
+            printf("Encrypted data saved to '%s'\n", filename);
+        } else {
+            printf("Error: Could not save file '%s'\n", filename);
+        }
+    }
+    
+    free(buffer);
+    free(encrypted);
+    return hexData;
+}
+
+// Main recording function - keeps all original features
+char* recordClicks() {
+    // Initialize variables
+    LARGE_INTEGER freq, start = {0}, lastUp = {0}, firstClick = {0};
+    static UnifiedClick clicks[MAX_CLICKS];
+    int unified = 0, doubles = 0, total = 0, nextId = 1;
+    BOOL wasPressed = FALSE;
+    
+    if (!QueryPerformanceFrequency(&freq)) {
+        printf("Error: Performance counter not available.\n");
+        return NULL;
+    }
+    
+    // Initial display
+    updateDisplay(unified, doubles, total, firstClick, firstClick, freq, false);
+    
+    printf("Press '%c' to start recording...\n", recorder.bindKey);
+    
+    // Wait for bind key to start recording
+    while (!(GetAsyncKeyState(recorder.bindKey) & 0x8000)) {
+        Sleep(10);
+    }
+    
+    // Wait for key release to avoid immediate retrigger
+    while (GetAsyncKeyState(recorder.bindKey) & 0x8000) {
+        Sleep(10);
+    }
+    
+    if (recorder.beepOnStart == 'Y' || recorder.beepOnStart == 'y') {
+        Beep(1000, 500);
+    }
+    
+    printf("Recording started! Press '%c' again to stop and save...\n", recorder.bindKey);
+    
+    // Main recording loop - toggle with bind key
+    while (!(GetAsyncKeyState(recorder.bindKey) & 0x8000)) {
         BOOL isPressed = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
         
         if (isPressed && !wasPressed) {
-            // Button just pressed
+            // Button pressed
             LARGE_INTEGER now;
             QueryPerformanceCounter(&now);
-            
-            // Record first click time for CPS calculation
-            if (firstClickTime.QuadPart == 0) {
-                firstClickTime = now;
-            }
-            
-            startTime = now;
+            if (firstClick.QuadPart == 0) firstClick = now;
+            start = now;
+            updateDisplay(unified, doubles, total, firstClick, now, freq, false);
         }
         else if (!isPressed && wasPressed) {
-            // Button just released
+            // Button released
             LARGE_INTEGER now;
             QueryPerformanceCounter(&now);
-            
-            if (startTime.QuadPart != 0) {
-                double duration = (double)(now.QuadPart - startTime.QuadPart) * 1000.0 / frequency.QuadPart;
-                
-                currentClickDuration = duration;
-                totalClicks++;
-                
-                // If this is not the first click, calculate delay from previous click
-                if (lastUpTime.QuadPart != 0) {
-                    double gap = (double)(startTime.QuadPart - lastUpTime.QuadPart) * 1000.0 / frequency.QuadPart;
-                    
-                    // Check for double click
-                    if (gap < 10.0) {
-                        doubleClicks++;
-                        printf("Double click detected!\n");
-                    }
-                    
-                    // Create unified click if both duration and delay meet requirements
-                    if (currentClickDuration <= 120.0 && gap <= 200.0 && unifiedClickCount < MAX_CLICKS) {
-                        // Update the previous click's delay (it was waiting for this information)
-                        if (unifiedClickCount > 0) {
-                            unifiedClicks[unifiedClickCount - 1].delay = gap;
-                        }
-                    } else {
-                        // Remove the previous click if delay doesn't meet requirements
-                        if (unifiedClickCount > 0 && gap > 200.0) {
-                            unifiedClickCount--;
-                            printf("Previous click removed due to excessive delay\n");
-                        }
-                    }
-                }
-                
-                // Add current click if duration meets requirements
-                if (currentClickDuration <= 120.0 && unifiedClickCount < MAX_CLICKS) {
-                    unifiedClicks[unifiedClickCount].duration = currentClickDuration;
-                    unifiedClicks[unifiedClickCount].delay = 0.0; // Will be set when next click happens
-                    unifiedClickCount++;
-                } else if (currentClickDuration > 120.0) {
-                    printf("Click discarded - duration too long\n");
-                }
-            }
-            
-            lastUpTime = now;
+            processClickRelease(now, start, lastUp, freq, clicks, &unified, &doubles, &total, &nextId);
+            updateDisplay(unified, doubles, total, firstClick, now, freq, true);
+            lastUp = now;
         }
         
         wasPressed = isPressed;
-        Sleep(1); // Small delay to prevent excessive CPU usage
+        Sleep(1);
     }
     
-    // Calculate and display statistics
-    printf("\n--- Final Statistics ---\n");
-    printf("Total clicks: %d (%d Double clicks)\n", totalClicks, doubleClicks);
-    
-    // Calculate CPS (Clicks Per Second)
-    if (firstClickTime.QuadPart != 0 && totalClicks > 0) {
-        LARGE_INTEGER endTime;
-        QueryPerformanceCounter(&endTime);
-        double totalTimeSeconds = (double)(endTime.QuadPart - firstClickTime.QuadPart) / frequency.QuadPart;
-        double cps = totalClicks / totalTimeSeconds;
-        printf("Average CPS: %.2f\n", cps);
+    // Wait for key release
+    while (GetAsyncKeyState(recorder.bindKey) & 0x8000) {
+        Sleep(10);
     }
     
-    // Ask user for filename
-    char filename[256];
-    printf("\nEnter the name for the configuration file (without extension): ");
-    fflush(stdout); // Force output before input
+    if (recorder.beepOnStart == 'Y' || recorder.beepOnStart == 'y') {
+        Beep(500, 300);  // Different tone for stop
+    }
     
-    // Clear any leftover input
+    // Final statistics
+    printf("\nFinal Statistics\nTotal clicks: %d (%d Double clicks)\n", total, doubles);
+    
+    double finalCPS = 0.0;
+    if (firstClick.QuadPart != 0 && total > 0) {
+        LARGE_INTEGER end;
+        QueryPerformanceCounter(&end);
+        double timeSeconds = (double)(end.QuadPart - firstClick.QuadPart) / freq.QuadPart;
+        finalCPS = total / timeSeconds;
+        printf("Average CPS: %.2f\n", finalCPS);
+    }
+    
+    // Get config name
+    char configName[256];
+    printf("\nEnter a name for this click configuration: ");
+    fflush(stdout);
+    
     int c;
     while ((c = getchar()) != '\n' && c != EOF);
     
-    if (fgets(filename, sizeof(filename), stdin) != NULL) {
-        // Remove newline character
-        filename[strcspn(filename, "\n")] = 0;
-        
-        // Add .cauto extension if not present
-        if (!strstr(filename, ".cauto")) {
-            strcat(filename, ".cauto");
-        }
+    if (fgets(configName, sizeof(configName), stdin)) {
+        configName[strcspn(configName, "\n")] = 0;
+        if (strlen(configName) == 0) strcpy(configName, "DefaultConfig");
     } else {
-        strcpy(filename, "config.cauto");
+        strcpy(configName, "DefaultConfig");
     }
     
-    printf("Saving to file: %s\n", filename);
-    
-    // Create temporary buffer for unencoded data
-    char* tempBuffer = malloc(100000000); // 100MB buffer
-    if (!tempBuffer) {
-        printf("\nError: Could not allocate memory for encoding\n");
-        return 1;
-    }
-    
-    // Build the data string
-    sprintf(tempBuffer, "[CLICK_RECORDER_DATA]\ntotal_clicks=%d\ndouble_clicks=%d\nunified_clicks=%d\naverage_cps=%.2f\n\n[UNIFIED_CLICKS]\n",
-            totalClicks, doubleClicks, unifiedClickCount,
-            (firstClickTime.QuadPart != 0 && totalClicks > 0) ? 
-            totalClicks / ((double)(GetTickCount64() - firstClickTime.QuadPart) / frequency.QuadPart) : 0.0);
-    
-    // Add unified clicks (duration:delay pairs)
-    for (int i = 0; i < unifiedClickCount; i++) {
-        char temp[64];
-        sprintf(temp, "%.3f:%.3f", unifiedClicks[i].duration, unifiedClicks[i].delay);
-        strcat(tempBuffer, temp);
-        if (i < unifiedClickCount - 1) strcat(tempBuffer, ",");
-    }
-    strcat(tempBuffer, "\n");
-    
-    // Encrypt using XOR cipher
-    int tempLen = strlen(tempBuffer);
-    char* encryptedBuffer = malloc(tempLen + 1);
-    if (!encryptedBuffer) {
-        printf("\nError: Could not allocate memory for encryption\n");
-        free(tempBuffer);
-        return 1;
-    }
-    
-    xor_encrypt_decrypt(tempBuffer, encryptedBuffer, tempLen);
-    encryptedBuffer[tempLen] = '\0';
-    
-    // Convert to hex string for file storage
-    char* hexBuffer = malloc(tempLen * 2 + 1);
-    if (!hexBuffer) {
-        printf("\nError: Could not allocate memory for hex conversion\n");
-        free(tempBuffer);
-        free(encryptedBuffer);
-        return 1;
-    }
-    
-    binary_to_hex(encryptedBuffer, hexBuffer, tempLen);
-    
-    // Save encrypted data to file
-    FILE* configFile = fopen(filename, "w");
-    if (configFile != NULL) {
-        fprintf(configFile, "%s", hexBuffer);
-        
-        fclose(configFile);
-        printf("\nEncrypted data saved to '%s'\n", filename);
-    } else {
-        printf("\nError: Could not save data to file '%s'\n", filename);
-    }
-    
-    // Cleanup
-    free(tempBuffer);
-    free(encryptedBuffer);
-    free(hexBuffer);
-    
-    printf("\nProgram completed. Press any key to exit...");
-    _getch();
-    return 0;
+    return saveConfig(configName, clicks, unified, total, doubles, finalCPS);
 }

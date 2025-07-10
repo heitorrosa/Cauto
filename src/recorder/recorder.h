@@ -4,22 +4,26 @@
 #include "../resources/include.c"
 #include "../utils/utils.h"
 
+#define MAX_CLICKS 1000000
+
 typedef struct {
     int unifiedClickCount;
     int doubleClicks;
     int totalClicks;
+
+    char beepOnStart;
+    char mcOnly;
+    char bindKey;
 } clickRecorder;
 
 typedef struct {
+    int id;             // Unique identifier for this click
     double duration;    // How long the button was held
     double delay;       // Time until next click
+    bool hasDelay;      // Whether delay has been set
 } UnifiedClick;
 
-#define MAX_CLICKS 1000000
-
-int recordClicks(void);
-void xor_encrypt_decrypt(const char* input, char* output, int length);
-void binary_to_hex(const char* binary, char* hex, int length);
-int hex_to_binary(const char* hex, char* binary);
+// Recording function - returns encrypted hex config data, keeps all features
+char* recordClicks(void);
 
 #endif // RECORDER_H

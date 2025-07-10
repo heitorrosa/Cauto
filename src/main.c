@@ -35,6 +35,8 @@ int main() {
     globalConfig config;
     clickerConfig clicker;
     clickRecorder recorder;
+    PlayerConfig player;
+    ParsedClick player_clickData;
     RandomState randState;
     WavCollection soundCollection = {0};
 
@@ -44,9 +46,15 @@ int main() {
 
     int mode;
 
-    printf("Select the desired mode:\n");
+    clearScreen();
+    printf("Select the desired mode:\n\n");
+
     printf("1. Standard Clicker\n");
+
     printf("2. Click Player (RECOMMENDED)\n");
+    printf("3. Click Recorder\n\n");
+
+    printf("Input your choice: ");
     scanf_s("%d", &mode);
 
     switch (mode) {
@@ -54,6 +62,7 @@ int main() {
             config.playerActive = false;
             config.leftActive = true;
 
+            clearScreen();
             printf("Desired CPS: ");
             scanf_s("%d", &clicker.inputCPS);
 
@@ -103,38 +112,98 @@ int main() {
 
             int choice;
 
-                printf("\n\n1. Input a config\n");
-                printf("2. Butterfly Click Profile (10k Clicks)\n");
-                printf("3. Jitter Click Profile (10k Clicks)\n");
-                printf("4. Record Clicks\n\n");
+                clearScreen();
+                printf("1. Select a config file\n");
+                printf("2. Select a Raw config\n");
+                printf("3. Butterfly Click Profile (10k Clicks)\n");
+                printf("4. Jitter Click Profile (10k Clicks)\n\n");
+
                 printf("Input your choice: ");
                 scanf_s("%d", &choice);
 
                 switch (choice) {
                     case 1:
+                        getPlayerConfig(false, NULL);
                         break;
 
                     case 2:
+                        {
+                            clearScreen();
+                            printf("\nEnter raw config: ");
+                            
+                            // Clear input buffer
+                            int c;
+                            while ((c = getchar()) != '\n' && c != EOF);
+                            
+                            char* rawConfig = malloc(100000); // 100KB for large configs
+                            if (!rawConfig) {
+                                printf("Error: Memory allocation failed\n");
+                                break;
+                            }
+                            
+                            if (fgets(rawConfig, 100000, stdin) != NULL) {
+                                rawConfig[strcspn(rawConfig, "\n")] = 0;
+                                
+                                if (strlen(rawConfig) > 0) {
+                                    PlayerConfig* config = getPlayerConfig(true, rawConfig);
+                                    if (config) {
+                                        printf("Successfully loaded config!\n");
+                                        freePlayerConfig(config);
+                                    }
+                                } else {
+                                    printf("No config data entered.\n");
+                                }
+                            } else {
+                                printf("Error reading config data.\n");
+                            }
+                            
+                            free(rawConfig);
+                        }
                         break;
 
                     case 3:
+                        getPlayerConfig(true, ButterflyConfig);
                         break;
 
                     case 4:
-                        recordClicks();
+                        getPlayerConfig(true, JitterConfig);
                         break;
-
                     default:
                         printf("Invalid choice. Please select a valid option.\n");
                         break;
                 }
             break;
 
+        case 3:
+            clearScreen();
+            
+            fflush(stdin);
+
+            printf("Beep on Start/End? (Y or N): \n");
+            scanf_s("%c", &recorder.beepOnStart);
+
+            fflush(stdin);
+
+            printf("Minecraft Only Recording? (Y or N): \n");
+            scanf_s("%c", &recorder.mcOnly);
+
+            fflush(stdin);
+
+            printf("Bind Key for Recording (default: INSERT): \n");
+            scanf_s("%c", &recorder.bindKey);
+
+            fflush(stdin);
+
+            recordClicks();
+            break;
+
         default:
-            printf("Invalid mode selected. Please choose 1 or 2.\n");
+            printf("Invalid mode selected. Please choose 1, 2, 3.\n");
             break;
     }
 
+
+    // SoundClicks selector
     if (config.soundClicks) {
         printf("Select WAV sound files for clicks...\n");
         
@@ -145,6 +214,7 @@ int main() {
             config.soundClicks = false;
         }
     }
+
 
     while (true) {
         HWND currentWindow = GetForegroundWindow();
@@ -164,7 +234,6 @@ int main() {
 
         if (config.mcOnly && currentWindow != minecraftRecent && currentWindow != minecraftOld && currentWindow != minecraftBedrock) {
             Sleep(50);
-            continue;
         }
 
         // Clicker Logic
@@ -235,7 +304,6 @@ int main() {
                         PlaySoundA(soundData, NULL, SND_MEMORY | SND_SYSTEM | SND_NOSTOP | SND_ASYNC);
                     }
                 }
-
 
             }
         } else if (config.playerActive) {

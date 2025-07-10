@@ -31,5 +31,6 @@ void sendLeftClickDown(bool down);
 bool openWavFileDialog(WavCollection* collection);
 void freeWavCollection(WavCollection* collection);
 char* getRandomWavData(WavCollection* collection, DWORD* size);
+void clearScreen(void); // Clear screen without system calls
 
 #endif // UTILS_H

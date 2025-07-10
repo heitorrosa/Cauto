@@ -317,9 +317,11 @@ CMakeFiles/Cauto.dir/src/main.c.obj: D:\Repositories\Cauto\src\main.c \
  D:/Repositories/Cauto/src/utils/utils.h \
  D:\Repositories\Cauto\src\player/player.c \
  D:\Repositories\Cauto\src\player/player.h \
+ D:/Repositories/Cauto/src/utils/crypto.h \
  D:\Repositories\Cauto\src\recorder/recorder.h \
  D:/Repositories/Cauto/src/resources/include.c \
  D:/Repositories/Cauto/src/utils/utils.h \
  D:\Repositories\Cauto\src\recorder/recorder.c \
  D:\Repositories\Cauto\src\recorder/recorder.h \
+ D:/Repositories/Cauto/src/utils/crypto.h \
  D:\Repositories\Cauto\src\utils/hwid.c

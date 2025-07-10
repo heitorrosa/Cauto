@@ -303,6 +303,7 @@ CMakeFiles/Cauto.dir/src/main.c.obj
  D:/Program Files/MSYS2/mingw64/lib/gcc/x86_64-w64-mingw32/15.1.0/include/xsavesintrin.h
  D:/Program Files/MSYS2/mingw64/lib/gcc/x86_64-w64-mingw32/15.1.0/include/xtestintrin.h
  D:/Repositories/Cauto/src/resources/include.c
+ D:/Repositories/Cauto/src/utils/crypto.h
  D:/Repositories/Cauto/src/utils/utils.h
  D:/Repositories/Cauto/src/clicker/clicker.c
  D:/Repositories/Cauto/src/clicker/clicker.h
