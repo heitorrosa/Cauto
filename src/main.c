@@ -168,6 +168,7 @@ int main() {
                     case 4:
                         getPlayerConfig(true, JitterConfig);
                         break;
+                        
                     default:
                         printf("Invalid choice. Please select a valid option.\n");
                         break;
