@@ -6,7 +6,6 @@
 char* ButterflyConfig = "";
 char* JitterConfig = "";
 
-
 static char* loadRawConfig(const char* input, bool* isFromFile) {
     *isFromFile = false;
     
@@ -161,13 +160,6 @@ static bool parseConfig(char* rawData, PlayerConfig* config) {
     return config->clickCount > 0;
 }
 
-static void displayConfigInfo(const PlayerConfig* config) {
-    clearScreen();
-    printf("\nConfig Name: %s\n", config->configName);
-    printf("Clicks: %d (%d Double Clicks)\n", config->unifiedClicks, config->doubleClicks);
-    printf("Average CPS: %.2f\n\n", config->averageCPS);
-}
-
 PlayerConfig* getPlayerConfig(bool getRawConfig, const char* rawConfigData) {
     PlayerConfig* config = malloc(sizeof(PlayerConfig));
 
@@ -191,7 +183,7 @@ PlayerConfig* getPlayerConfig(bool getRawConfig, const char* rawConfigData) {
         if (!rawData) {
             printf("Error: Failed to process raw config data\n");
             free(config);
- 
+            return NULL;
         }
     } else {
         OPENFILENAMEA ofn = {0};
@@ -207,29 +199,7 @@ PlayerConfig* getPlayerConfig(bool getRawConfig, const char* rawConfigData) {
         
         if (!GetOpenFileNameA(&ofn)) {
             printf("No file selected or dialog cancelled.\n");
-            
-            // Fallback to manual input
-            printf("\nAlternatively, enter filename manually: ");
-            fflush(stdout);
-            
-            char filename[MAX_PATH];
-            if (fgets(filename, sizeof(filename), stdin) != NULL) {
-                filename[strcspn(filename, "\n")] = 0;
-                if (strlen(filename) > 0) {
-                    strcpy(file, filename);
-                } else {
-                    printf("No filename provided.\n");
-                    free(config);
-                    return NULL;
-                }
-            } else {
-                printf("No filename provided.\n");
-                free(config);
-                return NULL;
-            }
         }
-        
-        printf("Selected file: %s\n\n", file);
         
         rawData = loadRawConfig(file, &isFromFile);
         if (!rawData) {
@@ -244,8 +214,6 @@ PlayerConfig* getPlayerConfig(bool getRawConfig, const char* rawConfigData) {
         free(config);
         return NULL;
     }
-    
-    displayConfigInfo(config);
     
     free(rawData);
     return config;

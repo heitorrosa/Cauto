@@ -35,8 +35,7 @@ int main() {
     globalConfig config;
     clickerConfig clicker;
     clickRecorder recorder;
-    PlayerConfig* playerConfig = NULL;
-    ParsedClick player_clickData;
+    PlayerConfig* playerConfig = NULL;  // Pointer to PlayerConfig
     RandomState randState;
     WavCollection soundCollection = {0};
 
@@ -123,7 +122,13 @@ int main() {
                 switch (choice) {
                     case 1:
                         if (playerConfig) freePlayerConfig(playerConfig);
-                        getPlayerConfig(false, NULL);
+                        playerConfig = getPlayerConfig(false, NULL);  // Store the returned config
+                        if (playerConfig) {
+                            clearScreen();
+                            printf("\nConfig Name: %s\n", playerConfig->configName);
+                            printf("Clicks: %d (%d Double Clicks)\n", playerConfig->unifiedClicks, playerConfig->doubleClicks);
+                            printf("Average CPS: %.2f\n\n", playerConfig->averageCPS);
+                        }
                         break;
 
                     case 2:
@@ -133,7 +138,7 @@ int main() {
                             
                             fflush(stdin);
 
-                            char* rawConfig = malloc(100000); // 100KB for large configs
+                            char* rawConfig = malloc(1000000); // 1MB for large configs
                             if (!rawConfig) {
                                 printf("Error: Memory allocation failed\n");
                                 break;
@@ -143,9 +148,13 @@ int main() {
                                 rawConfig[strcspn(rawConfig, "\n")] = 0;
                                 
                                 if (strlen(rawConfig) > 0) {
-                                    getPlayerConfig(true, rawConfig);
+                                    if (playerConfig) freePlayerConfig(playerConfig);
+                                    playerConfig = getPlayerConfig(true, rawConfig);  // Store the returned config
                                     if (playerConfig) {
-                                        printf("Successfully loaded config!\n");
+                                        clearScreen();
+                                        printf("\nConfig Name: %s\n", playerConfig->configName);
+                                        printf("Clicks: %d (%d Double Clicks)\n", playerConfig->unifiedClicks, playerConfig->doubleClicks);
+                                        printf("Average CPS: %.2f\n\n", playerConfig->averageCPS);
                                     }
                                 } else {
                                     printf("No config data entered.\n");
@@ -321,6 +330,5 @@ int main() {
         }
     }
 
-    freeWavCollection(&soundCollection);
     return 0;
 }
