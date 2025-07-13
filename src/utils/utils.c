@@ -6,7 +6,7 @@ void initGlobalConfig(globalConfig *config) {
     config->leftActive = true;
     config->playerActive = false;
 
-    config->mcOnly = true;
+    config->mcOnly = false;
     config->clickInventory = false;
     config->breakBlocks = true;
     config->soundClicks = true;
@@ -48,7 +48,9 @@ void sendLeftClickDown(bool down) {
     PostMessageA(GetForegroundWindow(), down ? WM_LBUTTONDOWN : WM_LBUTTONUP, MK_LBUTTON, MAKELPARAM(pos.x, pos.y));
 }
 
+//
 //SoundClicks
+//
 
 bool openWavFileDialog(WavCollection* collection) {
     OPENFILENAMEA ofn;

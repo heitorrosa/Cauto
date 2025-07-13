@@ -35,7 +35,7 @@ int main() {
     globalConfig config;
     clickerConfig clicker;
     clickRecorder recorder;
-    PlayerConfig player;
+    PlayerConfig* playerConfig = NULL;
     ParsedClick player_clickData;
     RandomState randState;
     WavCollection soundCollection = {0};
@@ -122,6 +122,7 @@ int main() {
 
                 switch (choice) {
                     case 1:
+                        if (playerConfig) freePlayerConfig(playerConfig);
                         getPlayerConfig(false, NULL);
                         break;
 
@@ -142,8 +143,8 @@ int main() {
                                 rawConfig[strcspn(rawConfig, "\n")] = 0;
                                 
                                 if (strlen(rawConfig) > 0) {
-                                    PlayerConfig* config = getPlayerConfig(true, rawConfig);
-                                    if (config) {
+                                    getPlayerConfig(true, rawConfig);
+                                    if (playerConfig) {
                                         printf("Successfully loaded config!\n");
                                     }
                                 } else {
@@ -158,10 +159,12 @@ int main() {
                         break;
 
                     case 3:
+                        if (playerConfig) free(playerConfig);
                         getPlayerConfig(true, ButterflyConfig);
                         break;
 
                     case 4:
+                        if (playerConfig) free(playerConfig);
                         getPlayerConfig(true, JitterConfig);
                         break;
                         
@@ -290,8 +293,6 @@ int main() {
 
         // Player Logic
         if (config.playerActive && GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
-            config.leftActive = false;
-
             if (config.clickInventory || !cursorVisible()) {
 
                 // Soundclicks
@@ -303,6 +304,16 @@ int main() {
                     }
                 }
 
+                // for (int i = rand() % (player.clickCount - 1 + 1) + 1; i < player.clickCount; i++) {
+                        //sendLeftClickDown(true);
+                        //Sleep((int)player.clicks[i].duration);
+
+                        //if (!config.breakBlocks) {
+                            //sendLeftClickDown(false);
+                        //}
+
+                //        Sleep((int)player.clicks[i].delay);
+                // }
             }
         } else if (config.playerActive) {
             PlaySoundA(NULL, NULL, SND_PURGE);
