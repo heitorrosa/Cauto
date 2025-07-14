@@ -44,6 +44,7 @@ int main() {
     initRandomState(&randState);
 
     int mode;
+    int clickIndex = -1;
 
     clearScreen();
     printf("Select the desired mode:\n\n");
@@ -169,12 +170,12 @@ int main() {
 
                     case 3:
                         if (playerConfig) free(playerConfig);
-                        getPlayerConfig(true, ButterflyConfig);
+                        playerConfig = getPlayerConfig(true, ButterflyConfig);
                         break;
 
                     case 4:
                         if (playerConfig) free(playerConfig);
-                        getPlayerConfig(true, JitterConfig);
+                        playerConfig = getPlayerConfig(true, JitterConfig);
                         break;
                         
                     default:
@@ -301,7 +302,7 @@ int main() {
 
 
         // Player Logic
-        if (config.playerActive && GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
+        if (config.playerActive && playerConfig->clickCount > 0 && GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
             if (config.clickInventory || !cursorVisible()) {
 
                 // Soundclicks
@@ -313,18 +314,25 @@ int main() {
                     }
                 }
 
-                // for (int i = rand() % (player.clickCount - 1 + 1) + 1; i < player.clickCount; i++) {
-                        //sendLeftClickDown(true);
-                        //Sleep((int)player.clicks[i].duration);
+                if(clickIndex == -1 || clickIndex >= playerConfig->clickCount) {
+                    clickIndex = rand() % playerConfig->clickCount;
+                    printf("Starting playback from click %d/%d\n", clickIndex + 1, playerConfig->clickCount);
+                }
 
-                        //if (!config.breakBlocks) {
-                            //sendLeftClickDown(false);
-                        //}
 
-                //        Sleep((int)player.clicks[i].delay);
-                // }
+                sendLeftClickDown(true);
+                Sleep((int)playerConfig->clicks[clickIndex].duration);
+
+                if (!config.breakBlocks) {
+                    sendLeftClickDown(false);
+                }
+
+                Sleep((int)playerConfig->clicks[clickIndex].delay);
+
+                clickIndex = (clickIndex + 1) % playerConfig->clickCount;
             }
         } else if (config.playerActive) {
+            clickIndex = -1;
             PlaySoundA(NULL, NULL, SND_PURGE);
             Sleep(1);
         }
