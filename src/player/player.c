@@ -183,7 +183,7 @@ PlayerConfig* getPlayerConfig(bool getRawConfig, const char* rawConfigData) {
         if (!rawData) {
             printf("Error: Failed to process raw config data\n");
             free(config);
-            return NULL;
+
         }
     } else {
         OPENFILENAMEA ofn = {0};
