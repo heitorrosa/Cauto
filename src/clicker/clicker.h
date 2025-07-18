@@ -6,12 +6,14 @@
 
 typedef struct {
     int inputCPS;
+
     float minDurationClick;
     float maxDurationClick;
 
     float dropChance;
-    float spikeChance;
     int dropCPS;
+    
+    float spikeChance;
     int spikeCPS;
 } clickerConfig;
 

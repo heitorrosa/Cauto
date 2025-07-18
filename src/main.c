@@ -43,7 +43,7 @@ int main() {
     initClickerConfig(&clicker);
     initRandomState(&randState);
 
-    int mode;
+    int clickerMode;
     int clickIndex = -1;
 
     clearScreen();
@@ -54,9 +54,9 @@ int main() {
     printf("3. Click Recorder\n\n");
 
     printf("Input your choice: ");
-    scanf_s("%d", &mode);
+    scanf_s("%d", &clickerMode);
 
-    switch (mode) {
+    switch (clickerMode) {
         case 1:
             config.playerActive = false;
             config.leftActive = true;
@@ -70,12 +70,16 @@ int main() {
                 return 1;
             }
 
+            fflush(stdin);
+
             printf("\nSelect the minimum click duration (ms): ");
             scanf_s("%f", &clicker.minDurationClick);
             if(clicker.minDurationClick < 10) {
                 printf("The click duration must be greater than 10.\n");
                 return 1;
             }
+
+            fflush(stdin);
 
             printf("Select the maximum click duration (ms): ");
             scanf_s("%f", &clicker.maxDurationClick);
@@ -84,6 +88,8 @@ int main() {
                 return 1;
             }
 
+            fflush(stdin);
+
             printf("\nCPS Drop chance (%%): ");
             scanf_s("%f", &clicker.dropChance);
             if(clicker.dropChance < 0 || clicker.dropChance > 100) {
@@ -91,8 +97,12 @@ int main() {
                 return 1;
             }
 
+            fflush(stdin);
+
             printf("Amount of CPS in the DROP: ");
             scanf_s("%d", &clicker.dropCPS);
+
+            fflush(stdin);
 
             printf("\nCPS Spike chance (%%): ");
             scanf_s("%f", &clicker.spikeChance);
@@ -100,6 +110,8 @@ int main() {
                 printf("The spike chance must be between 0 and 100.\n");
                 return 1;
             }
+
+            fflush(stdin);
 
             printf("Amount of CPS in the SPIKE: ");
             scanf_s("%d", &clicker.spikeCPS);
@@ -123,7 +135,7 @@ int main() {
                 switch (choice) {
                     case 1:
                         if (playerConfig) freePlayerConfig(playerConfig);
-                        playerConfig = getPlayerConfig(false, NULL);  // Store the returned config
+                        playerConfig = getPlayerConfig(false, NULL);
                         if (playerConfig) {
                             clearScreen();
                             printf("\nConfig Name: %s\n", playerConfig->configName);
@@ -133,13 +145,13 @@ int main() {
                         break;
 
                     case 2:
-                        {
-                            clearScreen();
-                            printf("\nEnter raw config: ");
                             
                             fflush(stdin);
 
-                            char* rawConfig = malloc(1000000); // 1MB for large configs
+                        {
+                            clearScreen();
+                            printf("\nEnter raw config: ");
+                            char* rawConfig = malloc(1000000);
                             if (!rawConfig) {
                                 printf("Error: Memory allocation failed\n");
                                 break;
@@ -211,6 +223,52 @@ int main() {
     }
 
 
+    // Global Config (Idk why it doesnt work with switch)
+
+    char mcOnlyInput;
+    char clickInventoryInput;
+    char breakBlocksInput;
+    
+    fflush(stdin);
+
+    printf("\nMinecraft Only (Y or N): ");
+    scanf_s(" %c", &mcOnlyInput);
+    if(mcOnlyInput == 'Y' || mcOnlyInput == 'y') {
+        config.mcOnly = true;
+    } else if(mcOnlyInput == 'N' || mcOnlyInput == 'n') {
+        config.mcOnly = false;
+    } else {
+        printf("Invalid input. Defaulting to 'N'.\n");
+        config.mcOnly = false;
+    }
+
+    fflush(stdin);
+
+    printf("\nClick Inventory (Y or N): ");
+    scanf_s(" %c", &clickInventoryInput);
+    if(clickInventoryInput == 'Y' || clickInventoryInput == 'y') {
+        config.clickInventory = true;
+    } else if(clickInventoryInput == 'N' || clickInventoryInput == 'n') {
+        config.clickInventory = false;
+    } else {
+        printf("Invalid input. Defaulting to 'N'.\n");
+        config.clickInventory = false;
+    }
+
+    fflush(stdin);
+    printf("\nBreak Blocks (Y or N): ");
+    scanf_s(" %c", &breakBlocksInput);
+    if(breakBlocksInput == 'Y' || breakBlocksInput == 'y') {
+        config.breakBlocks = true;
+    } else if(breakBlocksInput == 'N' || breakBlocksInput == 'n') {
+        config.breakBlocks = false;
+    } else {
+        printf("Invalid input. Defaulting to 'Y'.\n");
+        config.breakBlocks = true;
+    }
+
+    fflush(stdin);
+
     // SoundClicks selector
     if (config.soundClicks) {
         printf("\nSelect WAV sound files for clicks...\n");
@@ -226,25 +284,17 @@ int main() {
 
     while (true) {
         HWND currentWindow = GetForegroundWindow();
-        
-        static HWND minecraftRecent = NULL;
-        static HWND minecraftOld = NULL;
-        static HWND minecraftBedrock = NULL;
-        static DWORD lastWindowCheck = 0;
-        
+        HWND minecraftRecent = FindWindowA("GLFW30", NULL); // > 1.13
+        HWND minecraftOld = FindWindowA("LWJGL", NULL); // < 1.13
+        HWND minecraftBedrock = FindWindowA("ApplicationFrameWindow", NULL); // Bedrock Edition
+
         DWORD currentTime = GetTickCount();
-        if (currentTime - lastWindowCheck > 1000) {
-            minecraftRecent = FindWindowA("GLFW30", NULL);
-            minecraftOld = FindWindowA("LWJGL", NULL);
-            minecraftBedrock = FindWindowA("ApplicationFrameWindow", NULL);
-            lastWindowCheck = currentTime;
-        }
 
         if (config.mcOnly &&
-            currentWindow != minecraftRecent &&
-            currentWindow != minecraftOld &&
+            currentWindow != minecraftRecent ||
+            currentWindow != minecraftOld ||
             currentWindow != minecraftBedrock) {
-            Sleep(50);
+            Sleep(1);
         }
 
         // Clicker Logic
@@ -260,12 +310,14 @@ int main() {
                     }
                 }
 
+                // Randomization
                 float durationClick = getClickDuration(&clicker, &randState);
                 float clickInterval = getClickInterval(&clicker, &randState);
                 
                 float delayAfterClick = clickInterval - durationClick;
                 if (delayAfterClick < 5) delayAfterClick = 5;
 
+                // Click Logic
                 sendLeftClickDown(true);
                 Sleep((int)durationClick);
 
@@ -276,7 +328,7 @@ int main() {
                 Sleep((int)delayAfterClick);
             }
         } else if (config.leftActive) {
-            PlaySoundA(NULL, NULL, SND_PURGE);
+            PlaySoundA(NULL, NULL, SND_PURGE); // Stop any playing sound
             
             // Reduce calculation frequency when idle
             static DWORD lastIdleUpdate = 0;
@@ -297,6 +349,7 @@ int main() {
                 }
                 lastIdleUpdate = currentTime;
             }
+            
             Sleep(1);
         }
 
@@ -314,6 +367,8 @@ int main() {
                     }
                 }
 
+
+                // Random click selection
                 if(clickIndex == -1 || clickIndex >= playerConfig->clickCount) {
                     clickIndex = rand() % playerConfig->clickCount;
                     printf("Starting playback from click %d/%d\n", clickIndex + 1, playerConfig->clickCount);
@@ -329,11 +384,12 @@ int main() {
 
                 Sleep((int)playerConfig->clicks[clickIndex].delay);
 
+                // Update click index with the next click
                 clickIndex = (clickIndex + 1) % playerConfig->clickCount;
             }
         } else if (config.playerActive) {
-            clickIndex = -1;
-            PlaySoundA(NULL, NULL, SND_PURGE);
+            clickIndex = -1; // Reset the click index
+            PlaySoundA(NULL, NULL, SND_PURGE); // Stop any playing sound
             Sleep(1);
         }
     }

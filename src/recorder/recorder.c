@@ -118,8 +118,8 @@ static char* saveConfig(const char* configName, UnifiedClick* clicks, int unifie
     char* hexData = malloc(len * 2 + 1);
     
     if (encrypted && hexData) {
-        xor_encrypt_decrypt(buffer, encrypted, len);
-        binary_to_hex(encrypted, hexData, len);
+        XOREncryptDecrypt(buffer, encrypted, len);
+        BinaryToHex(encrypted, hexData, len);
         
         FILE* file = fopen(filename, "w");
         if (file) {

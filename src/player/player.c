@@ -26,8 +26,8 @@ static char* loadRawConfig(const char* input, bool* isFromFile) {
                 return NULL;
             }
             
-            hex_to_binary(input, binData);
-            xor_encrypt_decrypt(binData, rawData, binLen);
+            HexToBinary(input, binData);
+            XOREncryptDecrypt(binData, rawData, binLen);
             rawData[binLen] = '\0';
             
             free(binData);
@@ -77,8 +77,8 @@ static char* loadRawConfig(const char* input, bool* isFromFile) {
         return NULL;
     }
     
-    hex_to_binary(hexData, binData);
-    xor_encrypt_decrypt(binData, rawData, binLen);
+    HexToBinary(hexData, binData);
+    XOREncryptDecrypt(binData, rawData, binLen);
     rawData[binLen] = '\0';
     
     free(hexData);

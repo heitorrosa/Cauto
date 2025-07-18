@@ -5,12 +5,14 @@
 
 void initClickerConfig (clickerConfig *clicker) {
     clicker->inputCPS = 13;
+    
     clicker->minDurationClick = 22;
     clicker->maxDurationClick = 30;
 
     clicker->dropChance = 50;
-    clicker->spikeChance = 50;
     clicker->dropCPS = 3;
+
+    clicker->spikeChance = 50;
     clicker->spikeCPS = 2;
 }
 
