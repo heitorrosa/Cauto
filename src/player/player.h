@@ -20,6 +20,9 @@ typedef struct {
     int clickCount;
 } PlayerConfig;
 
+// External config data declarations
+extern char* ButterflyConfig;
+extern char* JitterConfig;
 
 PlayerConfig* getPlayerConfig(bool getRawConfig, const char* rawConfigData);
 void freePlayerConfig(PlayerConfig* config);

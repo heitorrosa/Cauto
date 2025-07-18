@@ -1,8 +1,0 @@
-[
-{
-  "directory": "D:/Repositories/Cauto/build",
-  "command": "\"D:\\Program Files\\MSYS2\\mingw64\\bin\\cc.exe\"   -g -o CMakeFiles\\Cauto.dir\\src\\main.c.obj -c D:\\Repositories\\Cauto\\src\\main.c",
-  "file": "D:/Repositories/Cauto/src/main.c",
-  "output": "CMakeFiles/Cauto.dir/src/main.c.obj"
-}
-]

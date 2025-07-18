@@ -1,18 +1,14 @@
 #include "resources/include.c"
 
 #include "utils/utils.h"
-#include "utils/utils.c"
-
 #include "clicker/clicker.h"
-#include "clicker/clicker.c"
-
 #include "player/player.h"
-#include "player/player.c"
-
 #include "recorder/recorder.h"
-#include "recorder/recorder.c"
+#include "websocket_example.h"
 
-#include "utils/hwid.c"
+// Forward declaration for HWID functions
+void getHWID(char* buffer, size_t bufferSize);
+int HWIDchecker(char *HWIDListURL);
 
 int main() {
     // char HWIDListURL[] = "resources/hwidlist.txt";
@@ -47,6 +43,9 @@ int main() {
     int clickIndex = -1;
 
     clearScreen();
+
+    websocket_example();
+
     printf("Select the desired mode:\n\n");
 
     printf("1. Standard Clicker\n");
@@ -349,7 +348,7 @@ int main() {
                 }
                 lastIdleUpdate = currentTime;
             }
-            
+
             Sleep(1);
         }
 
