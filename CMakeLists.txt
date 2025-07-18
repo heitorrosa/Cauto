@@ -90,7 +90,6 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/external/libwebsockets-4.4.1/CMakeLis
     # Ensure proper build order
     add_dependencies(Cauto websockets)
     
-    message(STATUS "libwebsockets support enabled")
 else()
     message(FATAL_ERROR "libwebsockets source not found in src/external/libwebsockets-4.4.1. This is required for the build.")
 endif()

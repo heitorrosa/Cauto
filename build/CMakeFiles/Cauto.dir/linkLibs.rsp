@@ -1,0 +1,1 @@
+ -lwinmm -ladvapi32 "src/external/libwebsockets-4.4.1/lib/libwebsockets_static.a" -lws2_32 -lws2_32 -luserenv -lpsapi -liphlpapi -lcrypt32 -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 

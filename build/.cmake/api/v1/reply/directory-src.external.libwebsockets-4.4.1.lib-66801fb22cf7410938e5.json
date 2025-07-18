@@ -1,0 +1,121 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"_install",
+			"install",
+			"x_vcpkg_install_local_dependencies"
+		],
+		"files" : 
+		[
+			"C:/Users/Administrator/vcpkg/scripts/buildsystems/vcpkg.cmake",
+			"src/external/libwebsockets-4.4.1/lib/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 287,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 720,
+				"parent" : 1
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 756,
+				"parent" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 705,
+				"parent" : 3
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 720,
+				"parent" : 4
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 340,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 720,
+				"parent" : 6
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 364,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 720,
+				"parent" : 8
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 2,
+			"component" : "core",
+			"destination" : "lib",
+			"paths" : 
+			[
+				"src/external/libwebsockets-4.4.1/lib/libwebsockets_static.a"
+			],
+			"targetId" : "websockets::@f2c2fb482bb1375ff884",
+			"targetIndex" : 31,
+			"type" : "target"
+		},
+		{
+			"backtrace" : 5,
+			"component" : "core",
+			"type" : "code"
+		},
+		{
+			"backtrace" : 7,
+			"component" : "Unspecified",
+			"destination" : "lib/pkgconfig",
+			"paths" : 
+			[
+				"build/src/external/libwebsockets-4.4.1/libwebsockets.pc"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 9,
+			"component" : "Unspecified",
+			"destination" : "lib/pkgconfig",
+			"paths" : 
+			[
+				"build/src/external/libwebsockets-4.4.1/libwebsockets_static.pc"
+			],
+			"type" : "file"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "src/external/libwebsockets-4.4.1/lib",
+		"source" : "src/external/libwebsockets-4.4.1/lib"
+	}
+}

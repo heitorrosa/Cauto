@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "src/external/libwebsockets-4.4.1/lib/core-net",
+		"source" : "src/external/libwebsockets-4.4.1/lib/core-net"
+	}
+}
