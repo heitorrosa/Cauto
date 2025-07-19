@@ -3,28 +3,28 @@
 #include "../utils/utils.h"
 #include "../utils/crypto.h"
 
+// High-precision timing structure
+typedef struct {
+    LARGE_INTEGER timestamp;    // High-precision timestamp
+    double duration;           // Click duration in milliseconds
+    double interval;          // Time to next click in milliseconds
+} PrecisionClick;
+
 // Helper function to convert character to virtual key code
 static int charToVirtualKey(char c) {
-    if (c >= 'a' && c <= 'z') {
-        return c - 'a' + 'A'; // Convert to uppercase
-    }
-    if (c >= 'A' && c <= 'Z') {
-        return c; // Already uppercase
-    }
-    if (c >= '0' && c <= '9') {
-        return c; // Numbers work directly
-    }
+    if (c >= 'a' && c <= 'z') return c - 'a' + 'A';
+    if (c >= 'A' && c <= 'Z') return c;
+    if (c >= '0' && c <= '9') return c;
     
-    // Special cases
     switch (c) {
         case ' ': return VK_SPACE;
         case '\t': return VK_TAB;
-        case '\n': case '\r': return VK_RETURN;
+        case '\r': case '\n': return VK_RETURN;
         default: return VK_INSERT; // Default fallback
     }
 }
 
-// Helper functions
+// Generate random filename
 static void generate_random_string(char* output, int length) {
     const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     srand((unsigned int)time(NULL) + GetTickCount());
@@ -34,81 +34,66 @@ static void generate_random_string(char* output, int length) {
     output[length] = '\0';
 }
 
-static void updateDisplay(int unified, int doubles, int total, LARGE_INTEGER firstClick, 
-                         LARGE_INTEGER now, LARGE_INTEGER freq, bool showDebug, clickRecorder* rec) {
+// High-precision time difference in milliseconds
+static double getTimeDifferenceMs(LARGE_INTEGER start, LARGE_INTEGER end, LARGE_INTEGER frequency) {
+    return ((double)(end.QuadPart - start.QuadPart) * 1000.0) / (double)frequency.QuadPart;
+}
+
+// Update display without real-time CPS calculation
+static void updateDisplay(PrecisionClick* clicks, int clickCount, int doubleClicks, 
+                         LARGE_INTEGER frequency, bool showStats, clickRecorder* rec) {
     clearScreen();
-    printf("Press '%c' to stop and save\n\n", rec->bindKey);
-    printf("Recorded Clicks: %d (%d Double Clicks)\n", unified, doubles);
+    printf("=== Click Recorder ===\n");
+    printf("Press '%c' to stop recording and save\n\n", rec->bindKey);
     
-    if (firstClick.QuadPart != 0 && total > 1) {
-        double timeSeconds = (double)(now.QuadPart - firstClick.QuadPart) / freq.QuadPart;
-        double currentCPS = total / timeSeconds;
-        printf("Current CPS: %.2f (Time: %.3fs, Total: %d, Recorded: %d)\n", 
-               currentCPS, timeSeconds, total, unified);
-        
-        if (showDebug) {
-            printf("DEBUG: First=%lld, Now=%lld, Freq=%lld\n", 
-                   firstClick.QuadPart, now.QuadPart, freq.QuadPart);
-        }
-    }
+    printf("Recorded Clicks: %d\n", clickCount);
+    printf("Double Clicks: %d\n", doubleClicks);
+    
+    printf("\nStatus: Recording... (Hold left mouse button and click)\n");
 }
 
-static void processClickRelease(LARGE_INTEGER now, LARGE_INTEGER start, LARGE_INTEGER lastUp, 
-                               LARGE_INTEGER freq, UnifiedClick* clicks, int* unified, 
-                               int* doubles, int* total, int* nextId) {
-    if (start.QuadPart == 0) return;
-    
-    double duration = (double)(now.QuadPart - start.QuadPart) * 1000.0 / freq.QuadPart;
-    (*total)++;
-    
-    if (lastUp.QuadPart != 0) {
-        double gap = (double)(start.QuadPart - lastUp.QuadPart) * 1000.0 / freq.QuadPart;
-        
-        // Double click detection
-        if (gap < 50.0) (*doubles)++;
-        
-        // Update previous click's delay or remove if gap too large
-        if (duration <= 120.0 && gap <= 200.0 && *unified < MAX_CLICKS) {
-            if (*unified > 0) clicks[*unified - 1].delay = gap;
-        } else if (*unified > 0 && gap > 200.0) {
-            (*unified)--;
-        }
-    }
-    
-    // Add current click if valid
-    if (duration <= 120.0 && *unified < MAX_CLICKS) {
-        clicks[*unified] = (UnifiedClick){*nextId, duration, 0.0, false};
-        (*unified)++;
-    }
-    (*nextId)++;
-}
-
+// Save configuration with proper format
 static char* saveConfig(const char* configName, UnifiedClick* clicks, int unified, 
                        int total, int doubles, double finalCPS) {
-    // Generate random filename (32 characters, no extension)
-    char filename[256], randomName[33]; // 32 chars + null terminator
+    // Generate random filename
+    char filename[256], randomName[33];
     generate_random_string(randomName, 32);
     strcpy(filename, randomName);
     
-    printf("Generated filename: %s\nConfig name: %s\n", filename, configName);
+    printf("\nSaving configuration...\n");
+    printf("Filename: %s\n", filename);
+    printf("Config name: %s\n", configName);
     
     // Build config data
-    char* buffer = malloc(100000000);
+    char* buffer = malloc(10000000); // 10MB buffer
     if (!buffer) {
-        printf("Error: Memory allocation failed\n");
+        printf("Error: Could not allocate memory for config data\n");
         return NULL;
     }
     
-    sprintf(buffer, "[CLICK_RECORDER_DATA]\nconfig_name=%s\ntotal_clicks=%d\n"
-                   "double_clicks=%d\nunified_clicks=%d\naverage_cps=%.2f\n\n[UNIFIED_CLICKS]\n",
-            configName, total, doubles, unified, finalCPS);
+    // Header
+    sprintf(buffer, 
+        "[CLICK_RECORDER_DATA]\n"
+        "config_name=%s\n"
+        "total_clicks=%d\n"
+        "double_clicks=%d\n"
+        "unified_clicks=%d\n"
+        "average_cps=%.2f\n"
+        "[UNIFIED_CLICKS]\n",
+        configName, total, doubles, unified, finalCPS);
     
     // Add click data
     for (int i = 0; i < unified; i++) {
-        char temp[128];
-        sprintf(temp, "%d:%.3f:%.3f%s", clicks[i].id, clicks[i].duration, 
-                clicks[i].delay, (i < unified - 1) ? "," : "");
-        strcat(buffer, temp);
+        char clickStr[64];
+        sprintf(clickStr, "%d:%.3f:%.3f", 
+                clicks[i].id, 
+                clicks[i].duration, 
+                clicks[i].delay);
+        
+        strcat(buffer, clickStr);
+        if (i < unified - 1) {
+            strcat(buffer, ",");
+        }
     }
     strcat(buffer, "\n");
     
@@ -121,133 +106,190 @@ static char* saveConfig(const char* configName, UnifiedClick* clicks, int unifie
         XOREncryptDecrypt(buffer, encrypted, len);
         BinaryToHex(encrypted, hexData, len);
         
-        FILE* file = fopen(filename, "w");
-        if (file) {
+        // Save to file
+        FILE* file;
+        if (fopen_s(&file, filename, "w") == 0) {
             fprintf(file, "%s", hexData);
             fclose(file);
-            printf("Encrypted data saved to '%s'\n", filename);
+            printf("Config saved successfully to: %s\n", filename);
         } else {
-            printf("Error: Could not save file '%s'\n", filename);
+            printf("Error: Could not save config to file\n");
         }
+        
+        free(encrypted);
+        free(buffer);
+        return hexData;
     }
     
     free(buffer);
-    free(encrypted);
-    return hexData;
+    return NULL;
 }
 
 char* recordClicks(clickRecorder* rec) {
-
-    // Initialize variables
-    LARGE_INTEGER freq, start = {0}, lastUp = {0}, firstClick = {0};
-    static UnifiedClick clicks[MAX_CLICKS];
-    int unified = 0, doubles = 0, total = 0, nextId = 1;
-    BOOL wasPressed = FALSE;
-    
-    // Convert character to virtual key code
-    int bindKeyVK = charToVirtualKey(rec->bindKey);
-    
-    if (!QueryPerformanceFrequency(&freq)) {
-        printf("Error: Performance counter not available.\n");
+    // High-precision timing setup
+    LARGE_INTEGER frequency, startTime, endTime;
+    if (!QueryPerformanceFrequency(&frequency)) {
+        printf("Error: High-precision timer not available\n");
         return NULL;
     }
     
-    HWND currentWindow = GetForegroundWindow();
-    HWND minecraftRecent = FindWindowA("GLFW30", NULL);
-    HWND minecraftOld = FindWindowA("LWJGL", NULL);
-    HWND minecraftBedrock = FindWindowA("ApplicationFrameWindow", NULL);
-
-    updateDisplay(unified, doubles, total, firstClick, firstClick, freq, false, rec);
-    
-    printf("Press '%c' to start recording...\n", rec->bindKey);
-    
-    while (!(GetAsyncKeyState(bindKeyVK) & 0x8000)) {
-        Sleep(10);
+    // Allocate memory for precision clicks
+    PrecisionClick* precisionClicks = malloc(MAX_CLICKS * sizeof(PrecisionClick));
+    if (!precisionClicks) {
+        printf("Error: Could not allocate memory for clicks\n");
+        return NULL;
     }
     
+    int clickCount = 0;
+    int doubleClicks = 0;
+    bool isPressed = false;
+    bool wasPressed = false;
+    int bindKeyVK = charToVirtualKey(rec->bindKey);
+    
+    // Window detection for Minecraft-only mode
+    HWND currentWindow, minecraftRecent, minecraftOld, minecraftBedrock;
+    
+    updateDisplay(precisionClicks, clickCount, doubleClicks, frequency, false, rec);
+    printf("Press '%c' to start recording...\n", rec->bindKey);
+    
+    // Wait for bind key to start
+    while (!(GetAsyncKeyState(bindKeyVK) & 0x8000)) {
+        precisionSleep(1.0);
+    }
     while (GetAsyncKeyState(bindKeyVK) & 0x8000) {
-        Sleep(10);
+        precisionSleep(1.0);
     }
     
     if (rec->beepOnStart == 'Y' || rec->beepOnStart == 'y') {
-        Beep(1000, 500);
+        Beep(800, 200);
     }
     
-    printf("Recording started! Press '%c' again to stop and save...\n", rec->bindKey);
+    printf("Recording started! Left-click to record clicks...\n");
     
+    LARGE_INTEGER lastClickStart = {0};
+    
+    // Main recording loop
     while (!(GetAsyncKeyState(bindKeyVK) & 0x8000)) {
+        // Check for window focus if Minecraft-only mode
         if (rec->mcOnly == 'Y' || rec->mcOnly == 'y') {
-            static DWORD lastWindowCheck = 0;
-            DWORD currentTime = GetTickCount();
-            
-            if (currentTime - lastWindowCheck > 1000) {
-                currentWindow = GetForegroundWindow();
-                minecraftRecent = FindWindowA("GLFW30", NULL);
-                minecraftOld = FindWindowA("LWJGL", NULL);
-                minecraftBedrock = FindWindowA("ApplicationFrameWindow", NULL);
-                lastWindowCheck = currentTime;
-            }
+            currentWindow = GetForegroundWindow();
+            minecraftRecent = FindWindowA("GLFW30", NULL);
+            minecraftOld = FindWindowA("LWJGL", NULL); 
+            minecraftBedrock = FindWindowA("ApplicationFrameWindow", NULL);
             
             if (currentWindow != minecraftRecent && 
                 currentWindow != minecraftOld && 
                 currentWindow != minecraftBedrock) {
-                Sleep(50);
+                precisionSleep(1.0);
                 continue;
             }
         }
         
-        BOOL isPressed = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
-        
-        if (isPressed && !wasPressed) {
-            LARGE_INTEGER now;
-            QueryPerformanceCounter(&now);
-            if (firstClick.QuadPart == 0) firstClick = now;
-            start = now;
-            updateDisplay(unified, doubles, total, firstClick, now, freq, false, rec);
-        }
-        else if (!isPressed && wasPressed) {
-            LARGE_INTEGER now;
-            QueryPerformanceCounter(&now);
-            processClickRelease(now, start, lastUp, freq, clicks, &unified, &doubles, &total, &nextId);
-            updateDisplay(unified, doubles, total, firstClick, now, freq, true, rec);
-            lastUp = now;
-        }
-        
         wasPressed = isPressed;
-        Sleep(1);
+        isPressed = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
+        
+        // Mouse button pressed (click start)
+        if (isPressed && !wasPressed) {
+            QueryPerformanceCounter(&startTime);
+            lastClickStart = startTime;
+        }
+        // Mouse button released (click end)
+        else if (!isPressed && wasPressed && clickCount < MAX_CLICKS) {
+            QueryPerformanceCounter(&endTime);
+            
+            // Calculate click duration
+            double duration = getTimeDifferenceMs(lastClickStart, endTime, frequency);
+            
+            // Only record clicks with reasonable duration (5-200ms)
+            if (duration >= 5.0 && duration <= 200.0) {
+                precisionClicks[clickCount].timestamp = lastClickStart;
+                precisionClicks[clickCount].duration = duration;
+                
+                // Calculate and set interval from previous click (if exists)
+                if (clickCount > 0) {
+                    double interval = getTimeDifferenceMs(precisionClicks[clickCount-1].timestamp, 
+                                                         lastClickStart, frequency);
+                    
+                    // For very long pauses (>500ms), cap the interval to maintain reasonable playback
+                    if (interval > 500.0) {
+                        printf("Very long pause detected (%.1fms), capping interval for natural playback\n", interval);
+                        interval = 150.0; // Cap at reasonable interval
+                    }
+                    
+                    precisionClicks[clickCount-1].interval = interval;
+                    
+                    // Check for double click (interval < 50ms for actual double-clicks)
+                    if (interval < 50.0) {
+                        doubleClicks++;
+                    }
+                }
+                
+                clickCount++;
+                
+                // Update display every click for better feedback
+                updateDisplay(precisionClicks, clickCount, doubleClicks, frequency, true, rec);
+            }
+        }
+        
+        precisionSleep(1.0); // Small delay to prevent excessive CPU usage
     }
     
+    // Wait for bind key release
     while (GetAsyncKeyState(bindKeyVK) & 0x8000) {
-        Sleep(10);
+        precisionSleep(1.0);
     }
     
     if (rec->beepOnStart == 'Y' || rec->beepOnStart == 'y') {
-        Beep(500, 300);
+        Beep(600, 200);
     }
     
-    printf("\nFinal Statistics\nTotal clicks: %d (%d Double clicks)\n", total, doubles);
-    
-    double finalCPS = 0.0;
-    if (firstClick.QuadPart != 0 && total > 0) {
-        LARGE_INTEGER end;
-        QueryPerformanceCounter(&end);
-        double timeSeconds = (double)(end.QuadPart - firstClick.QuadPart) / freq.QuadPart;
-        finalCPS = total / timeSeconds;
-        printf("Average CPS: %.2f\n", finalCPS);
+    if (clickCount == 0) {
+        printf("\nNo clicks recorded!\n");
+        free(precisionClicks);
+        return NULL;
     }
     
-    fflush(stdin);
-
+    // Calculate simple final statistics
+    double totalTime = getTimeDifferenceMs(precisionClicks[0].timestamp, 
+                                         precisionClicks[clickCount-1].timestamp, frequency) / 1000.0;
+    double simpleCPS = (double)(clickCount - 1) / totalTime;
+    
+    printf("\n=== Recording Complete ===\n");
+    printf("Total clicks: %d\n", clickCount);
+    printf("Double clicks: %d\n", doubleClicks);
+    printf("Total recording time: %.2f seconds\n", totalTime);
+    printf("Average CPS: %.2f\n", simpleCPS);
+    
+    // Get config name
     char configName[256];
-    printf("\nEnter a name for this click configuration: ");
-    fflush(stdout);
-    
+    printf("\nEnter config name: ");
+    fflush(stdin);
     if (fgets(configName, sizeof(configName), stdin)) {
-        configName[strcspn(configName, "\n")] = 0;
-        if (strlen(configName) == 0) strcpy(configName, "DefaultConfig");
-    } else {
-        strcpy(configName, "DefaultConfig");
+        configName[strcspn(configName, "\n")] = '\0';
+    }
+    if (strlen(configName) == 0) {
+        strcpy(configName, "Recorded_Config");
     }
     
-    return saveConfig(configName, clicks, unified, total, doubles, finalCPS);
+    // Convert precision clicks to unified clicks format
+    UnifiedClick* unifiedClicks = malloc(clickCount * sizeof(UnifiedClick));
+    if (!unifiedClicks) {
+        printf("Error: Could not allocate memory for unified clicks\n");
+        free(precisionClicks);
+        return NULL;
+    }
+    
+    for (int i = 0; i < clickCount; i++) {
+        unifiedClicks[i].id = i + 1;
+        unifiedClicks[i].duration = precisionClicks[i].duration;
+        unifiedClicks[i].delay = (i < clickCount - 1) ? precisionClicks[i].interval : 0.0;
+        unifiedClicks[i].hasDelay = (i < clickCount - 1);
+    }
+    
+    // Save configuration
+    char* result = saveConfig(configName, unifiedClicks, clickCount, clickCount, doubleClicks, simpleCPS);
+    
+    free(precisionClicks);
+    free(unifiedClicks);
+    return result;
 }

@@ -3,8 +3,53 @@
 #include "../utils/utils.h"
 #include "../utils/crypto.h"
 
+// Config data definitions
 char* ButterflyConfig = "";
 char* JitterConfig = "";
+
+static char* loadFileContents(const char* filename) {
+    FILE* file = fopen(filename, "rb");
+    if (!file) {
+        return NULL;
+    }
+    
+    fseek(file, 0, SEEK_END);
+    long size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    
+    char* data = malloc(size + 1);
+    if (!data) {
+        fclose(file);
+        return NULL;
+    }
+    
+    fread(data, 1, size, file);
+    data[size] = '\0';
+    fclose(file);
+    
+    // Check if this is hex data (encrypted)
+    if (size > 100 && size % 2 == 0) {
+        // Try to decrypt as hex
+        int binLen = size / 2;
+        char* binData = malloc(binLen + 1);
+        char* rawData = malloc(binLen + 1);
+        
+        if (binData && rawData) {
+            HexToBinary(data, binData);
+            XOREncryptDecrypt(binData, rawData, binLen);
+            rawData[binLen] = '\0';
+            
+            free(data);
+            free(binData);
+            return rawData;
+        }
+        
+        free(binData);
+        free(rawData);
+    }
+    
+    return data;
+}
 
 static char* loadRawConfig(const char* input, bool* isFromFile) {
     *isFromFile = false;
@@ -31,191 +76,219 @@ static char* loadRawConfig(const char* input, bool* isFromFile) {
             rawData[binLen] = '\0';
             
             free(binData);
-            
-            if (strstr(rawData, "[CLICK_RECORDER_DATA]")) {
-                return rawData;
-            } else {
-                free(rawData);
-                printf("Error: Invalid encrypted config data\n");
-                return NULL;
-            }
+            return rawData;
         }
-        
-        return strdup(input);
     }
     
-    FILE* file = fopen(input, "r");
-    if (!file) {
-        printf("Error: Cannot open file '%s'\n", input);
-        return NULL;
+    // Try to load as file path
+    if (access(input, F_OK) == 0) {
+        *isFromFile = true;
+        return loadFileContents(input);
     }
     
-    // Read file
-    fseek(file, 0, SEEK_END);
-    long size = ftell(file);
-    fseek(file, 0, SEEK_SET);
-    
-    char* hexData = malloc(size + 1);
-    if (!hexData) {
-        fclose(file);
-        return NULL;
-    }
-    
-    fread(hexData, 1, size, file);
-    hexData[size] = '\0';
-    fclose(file);
-    
-    // Decrypt
-    int binLen = size / 2;
-    char* binData = malloc(binLen + 1);
-    char* rawData = malloc(binLen + 1);
-    
-    if (!binData || !rawData) {
-        free(hexData);
-        free(binData);
-        free(rawData);
-        return NULL;
-    }
-    
-    HexToBinary(hexData, binData);
-    XOREncryptDecrypt(binData, rawData, binLen);
-    rawData[binLen] = '\0';
-    
-    free(hexData);
-    free(binData);
-    *isFromFile = true;
-    return rawData;
+    return NULL;
 }
 
-static void parseClickData(char* line, PlayerConfig* config) {
-    int count = 1;
-    for (int i = 0; line[i]; i++) if (line[i] == ',') count++;
+static ParsedClick* parseClickData(const char* data, int* count) {
+    *count = 0;
     
-    config->clicks = malloc(count * sizeof(ParsedClick));
-    if (!config->clicks) {
-        printf("Error: Could not allocate memory for clicks\n");
-        return;
+    char* dataCopy = strdup(data);
+    if (!dataCopy) return NULL;
+    
+    char* lines[10000];
+    int lineCount = 0;
+    char* token = strtok(dataCopy, "\n");
+    
+    while (token && lineCount < 10000) {
+        if (strstr(token, "Click ID:")) {
+            lines[lineCount++] = strdup(token);
+        }
+        token = strtok(NULL, "\n");
     }
     
-    config->clickCount = 0;
-    char* pos = line;
-    
-    for (int i = 0; i < count && pos; i++) {
-        char* comma = strchr(pos, ',');
-        char clickStr[128];
-        
-        // Extract individual click string
-        if (comma) {
-            strncpy(clickStr, pos, comma - pos);
-            clickStr[comma - pos] = '\0';
-            pos = comma + 1;
-        } else {
-            strcpy(clickStr, pos);
-            pos = NULL;
-        }
-        
-        // Parse id:duration:delay
-        char* c1 = strchr(clickStr, ':');
-        if (c1) {
-            *c1++ = '\0';
-            char* c2 = strchr(c1, ':');
-            if (c2) {
-                *c2++ = '\0';
-                config->clicks[config->clickCount].id = atoi(clickStr);
-                config->clicks[config->clickCount].duration = atof(c1);
-                config->clicks[config->clickCount].delay = atof(c2);
-                config->clickCount++;
-            }
-        }
+    if (lineCount == 0) {
+        free(dataCopy);
+        return NULL;
     }
+    
+    ParsedClick* clicks = malloc(lineCount * sizeof(ParsedClick));
+    if (!clicks) {
+        for (int i = 0; i < lineCount; i++) {
+            free(lines[i]);
+        }
+        free(dataCopy);
+        return NULL;
+    }
+    
+    for (int i = 0; i < lineCount; i++) {
+        sscanf(lines[i], "Click ID: %d, Duration: %lf ms, Delay: %lf ms", 
+               &clicks[i].id, &clicks[i].duration, &clicks[i].delay);
+        free(lines[i]);
+    }
+    
+    *count = lineCount;
+    free(dataCopy);
+    return clicks;
 }
 
-static bool parseConfig(char* rawData, PlayerConfig* config) {
+static PlayerConfig* parseConfig(const char* rawData) {
+    if (!rawData) return NULL;
+    
+    PlayerConfig* config = malloc(sizeof(PlayerConfig));
+    if (!config) return NULL;
+    
+    // Initialize defaults
     memset(config, 0, sizeof(PlayerConfig));
+    strcpy(config->configName, "Unknown");
     
-    char* line = strtok(rawData, "\n");
-    bool inClicks = false;
-    
-    while (line) {
-        if (strstr(line, "config_name=")) 
-            strncpy(config->configName, line + 12, sizeof(config->configName) - 1);
-        else if (strstr(line, "total_clicks=")) 
-            config->totalClicks = atoi(line + 13);
-        else if (strstr(line, "double_clicks=")) 
-            config->doubleClicks = atoi(line + 14);
-        else if (strstr(line, "unified_clicks=")) 
-            config->unifiedClicks = atoi(line + 15);
-        else if (strstr(line, "average_cps=")) 
-            config->averageCPS = atof(line + 12);
-        else if (strstr(line, "[UNIFIED_CLICKS]")) 
-            inClicks = true;
-        else if (inClicks && strlen(line) > 0) {
-            parseClickData(line, config);
-            break;
-        }
-        
-        line = strtok(NULL, "\n");
+    // Parse header info - handle both old and new formats
+    char* configLine = strstr(rawData, "config_name=");
+    if (!configLine) {
+        configLine = strstr(rawData, "Config Name:");
     }
     
-    return config->clickCount > 0;
+    if (configLine) {
+        if (strstr(configLine, "config_name=")) {
+            // New format: config_name=Name
+            sscanf(configLine, "config_name=%255[^\n]", config->configName);
+        } else {
+            // Old format: Config Name: Name
+            sscanf(configLine, "Config Name: %255[^\n]", config->configName);
+        }
+    }
+    
+    char* clicksLine = strstr(rawData, "total_clicks=");
+    if (!clicksLine) {
+        clicksLine = strstr(rawData, "Total Clicks:");
+    }
+    
+    if (clicksLine) {
+        if (strstr(clicksLine, "total_clicks=")) {
+            sscanf(clicksLine, "total_clicks=%d", &config->totalClicks);
+        } else {
+            sscanf(clicksLine, "Total Clicks: %d", &config->totalClicks);
+        }
+    }
+    
+    char* doubleClicksLine = strstr(rawData, "double_clicks=");
+    if (!doubleClicksLine) {
+        doubleClicksLine = strstr(rawData, "Double Clicks:");
+    }
+    
+    if (doubleClicksLine) {
+        if (strstr(doubleClicksLine, "double_clicks=")) {
+            sscanf(doubleClicksLine, "double_clicks=%d", &config->doubleClicks);
+        } else {
+            sscanf(doubleClicksLine, "Double Clicks: %d", &config->doubleClicks);
+        }
+    }
+    
+    char* unifiedClicksLine = strstr(rawData, "unified_clicks=");
+    if (!unifiedClicksLine) {
+        unifiedClicksLine = strstr(rawData, "Unified Clicks:");
+    }
+    
+    if (unifiedClicksLine) {
+        if (strstr(unifiedClicksLine, "unified_clicks=")) {
+            sscanf(unifiedClicksLine, "unified_clicks=%d", &config->unifiedClicks);
+        } else {
+            sscanf(unifiedClicksLine, "Unified Clicks: %d", &config->unifiedClicks);
+        }
+    }
+    
+    char* averageCPSLine = strstr(rawData, "average_cps=");
+    if (!averageCPSLine) {
+        averageCPSLine = strstr(rawData, "Average CPS:");
+    }
+    
+    if (averageCPSLine) {
+        if (strstr(averageCPSLine, "average_cps=")) {
+            sscanf(averageCPSLine, "average_cps=%lf", &config->averageCPS);
+        } else {
+            sscanf(averageCPSLine, "Average CPS: %lf", &config->averageCPS);
+        }
+    }
+    
+    // Parse click data - handle new format with unified clicks
+    char* unifiedSection = strstr(rawData, "[UNIFIED_CLICKS]");
+    if (unifiedSection) {
+        // New format: comma-separated values after [UNIFIED_CLICKS]
+        char* dataStart = strchr(unifiedSection, '\n');
+        if (dataStart) {
+            dataStart++; // Skip the newline
+            
+            // Count clicks by counting commas + 1
+            int clickCount = 1;
+            char* temp = dataStart;
+            while ((temp = strchr(temp, ',')) != NULL) {
+                clickCount++;
+                temp++;
+            }
+            
+            config->clicks = malloc(clickCount * sizeof(ParsedClick));
+            if (config->clicks) {
+                config->clickCount = 0;
+                
+                char* dataCopy = strdup(dataStart);
+                if (dataCopy) {
+                    char* token = strtok(dataCopy, ",\n");
+                    while (token && config->clickCount < clickCount) {
+                        int id;
+                        double duration, delay;
+                        if (sscanf(token, "%d:%lf:%lf", &id, &duration, &delay) == 3) {
+                            config->clicks[config->clickCount].id = id;
+                            config->clicks[config->clickCount].duration = duration;
+                            config->clicks[config->clickCount].delay = delay;
+                            config->clickCount++;
+                        }
+                        token = strtok(NULL, ",\n");
+                    }
+                    free(dataCopy);
+                }
+            }
+        }
+    } else {
+        // Try old format
+        config->clicks = parseClickData(rawData, &config->clickCount);
+    }
+    
+    return config;
 }
 
 PlayerConfig* getPlayerConfig(bool getRawConfig, const char* rawConfigData) {
-    PlayerConfig* config = malloc(sizeof(PlayerConfig));
-
-    if (!config) {
-        printf("Error: Could not allocate memory for config\n");
-        return NULL;
-    }
-    
-    char* rawData = NULL;
     bool isFromFile = false;
+    char* rawData = NULL;
     
-    if (getRawConfig) {
-        if (!rawConfigData || strlen(rawConfigData) == 0) {
-            printf("Error: No raw config data provided\n");
-            free(config);
-            return NULL;
-        }
-        
-
+    if (getRawConfig && rawConfigData) {
         rawData = loadRawConfig(rawConfigData, &isFromFile);
-        if (!rawData) {
-            printf("Error: Failed to process raw config data\n");
-            free(config);
-
-        }
     } else {
-        OPENFILENAMEA ofn = {0};
-        char file[MAX_PATH] = {0};
+        OPENFILENAME ofn;
+        char szFile[260] = {0};
         
+        ZeroMemory(&ofn, sizeof(ofn));
         ofn.lStructSize = sizeof(ofn);
-        ofn.lpstrFile = file;
-        ofn.nMaxFile = sizeof(file);
+        ofn.lpstrFile = szFile;
+        ofn.nMaxFile = sizeof(szFile);
         ofn.lpstrFilter = "All Files\0*.*\0";
         ofn.nFilterIndex = 1;
-        ofn.lpstrTitle = "Select Click Configuration File";
-        ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
+        ofn.lpstrFileTitle = NULL;
+        ofn.nMaxFileTitle = 0;
+        ofn.lpstrInitialDir = NULL;
+        ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
         
-        if (!GetOpenFileNameA(&ofn)) {
-            printf("No file selected or dialog cancelled.\n");
-        }
-        
-        rawData = loadRawConfig(file, &isFromFile);
-        if (!rawData) {
-            free(config);
-            return NULL;
+        if (GetOpenFileName(&ofn)) {
+            rawData = loadFileContents(szFile);
+            isFromFile = true;
         }
     }
     
-    if (!parseConfig(rawData, config)) {
-        printf("Error: Failed to parse config data\n");
-        free(rawData);
-        free(config);
+    if (!rawData) {
         return NULL;
     }
     
+    PlayerConfig* config = parseConfig(rawData);
     free(rawData);
+    
     return config;
 }
 

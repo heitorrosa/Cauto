@@ -24,9 +24,8 @@ typedef struct {
 extern char* ButterflyConfig;
 extern char* JitterConfig;
 
+// Config management functions only
 PlayerConfig* getPlayerConfig(bool getRawConfig, const char* rawConfigData);
 void freePlayerConfig(PlayerConfig* config);
-int playClicks(const char* input);
-int listAndDecodeConfigs(void);
 
 #endif // PLAYER_H

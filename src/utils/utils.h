@@ -32,5 +32,7 @@ bool openWavFileDialog(WavCollection* collection);
 void freeWavCollection(WavCollection* collection);
 char* getRandomWavData(WavCollection* collection, DWORD* size);
 void clearScreen(void);
+void precisionSleep(double milliseconds);
+char* openConfigFileDialog(void);
 
 #endif // UTILS_H

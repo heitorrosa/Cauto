@@ -4,11 +4,55 @@
 #include "clicker/clicker.h"
 #include "player/player.h"
 #include "recorder/recorder.h"
-#include "websocket_example.h"
 
 // Forward declaration for HWID functions
 void getHWID(char* buffer, size_t bufferSize);
 int HWIDchecker(char *HWIDListURL);
+
+// Player state structure (moved from player.h to main.c)
+typedef struct {
+    int currentIndex;
+    bool isActive;
+    LARGE_INTEGER lastClickTime;
+    double timeAccumulator;
+    int randomStartPosition;
+    bool useRandomStart;
+    LARGE_INTEGER frequency;
+} PlayerState;
+
+// Player logic functions (moved from player.c to main.c)
+static void initPlayerState(PlayerState* state) {
+    memset(state, 0, sizeof(PlayerState));
+    state->currentIndex = 0;
+    state->isActive = false;
+    state->timeAccumulator = 0.0;
+    state->randomStartPosition = 0;
+    state->useRandomStart = true;
+    QueryPerformanceFrequency(&state->frequency);
+    QueryPerformanceCounter(&state->lastClickTime);
+}
+
+static void resetPlayerState(PlayerState* state) {
+    state->currentIndex = 0;
+    state->isActive = false;
+    state->timeAccumulator = 0.0;
+    QueryPerformanceCounter(&state->lastClickTime);
+}
+
+static void setRandomStartPosition(PlayerState* state, PlayerConfig* config) {
+    if (config && config->clickCount > 0 && state->useRandomStart) {
+        // Start from a random position within the first 50% of clicks
+        int maxStart = config->clickCount / 2;
+        if (maxStart < 1) maxStart = 1;
+        state->randomStartPosition = rand() % maxStart;
+        state->currentIndex = state->randomStartPosition;
+        printf("Random start position set to: %d/%d\n", 
+               state->currentIndex + 1, config->clickCount);
+    } else {
+        state->randomStartPosition = 0;
+        state->currentIndex = 0;
+    }
+}
 
 int main() {
     // char HWIDListURL[] = "resources/hwidlist.txt";
@@ -31,20 +75,21 @@ int main() {
     globalConfig config;
     clickerConfig clicker;
     clickRecorder recorder;
-    PlayerConfig* playerConfig = NULL;  // Pointer to PlayerConfig
+    PlayerConfig* playerConfig = NULL;
+    PlayerState playerState;  // New player state structure
     RandomState randState;
     WavCollection soundCollection = {0};
 
     initGlobalConfig(&config);
     initClickerConfig(&clicker);
     initRandomState(&randState);
+    initPlayerState(&playerState);  // Initialize player state
 
     int clickerMode;
-    int clickIndex = -1;
 
     clearScreen();
 
-    websocket_example();
+    // websocket_example();
 
     printf("Select the desired mode:\n\n");
 
@@ -156,7 +201,7 @@ int main() {
                                 break;
                             }
                             
-                            if (fgets(rawConfig, 100000, stdin) != NULL) {
+                            if (fgets(rawConfig, 1000000, stdin) != NULL) {
                                 rawConfig[strcspn(rawConfig, "\n")] = 0;
                                 
                                 if (strlen(rawConfig) > 0) {
@@ -289,11 +334,12 @@ int main() {
 
         DWORD currentTime = GetTickCount();
 
-        if (config.mcOnly &&
-            currentWindow != minecraftRecent ||
-            currentWindow != minecraftOld ||
-            currentWindow != minecraftBedrock) {
-            Sleep(1);
+        if (config.mcOnly) {
+            if (currentWindow != minecraftRecent && 
+                currentWindow != minecraftOld && 
+                currentWindow != minecraftBedrock) {
+                precisionSleep(1.0);
+            }
         }
 
         // Clicker Logic
@@ -318,13 +364,13 @@ int main() {
 
                 // Click Logic
                 sendLeftClickDown(true);
-                Sleep((int)durationClick);
+                precisionSleep(durationClick);
 
                 if (!config.breakBlocks) {
                     sendLeftClickDown(false);
                 }
 
-                Sleep((int)delayAfterClick);
+                precisionSleep(delayAfterClick);
             }
         } else if (config.leftActive) {
             PlaySoundA(NULL, NULL, SND_PURGE); // Stop any playing sound
@@ -349,12 +395,12 @@ int main() {
                 lastIdleUpdate = currentTime;
             }
 
-            Sleep(1);
+            precisionSleep(1.0);
         }
 
 
         // Player Logic
-        if (config.playerActive && playerConfig->clickCount > 0 && GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
+        if (config.playerActive && playerConfig && playerConfig->clickCount > 0 && GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
             if (config.clickInventory || !cursorVisible()) {
 
                 // Soundclicks
@@ -366,30 +412,68 @@ int main() {
                     }
                 }
 
-
-                // Random click selection
-                if(clickIndex == -1 || clickIndex >= playerConfig->clickCount) {
-                    clickIndex = rand() % playerConfig->clickCount;
-                    printf("Starting playback from click %d/%d\n", clickIndex + 1, playerConfig->clickCount);
+                // Initialize playback on first click
+                if (!playerState.isActive) {
+                    playerState.isActive = true;
+                    setRandomStartPosition(&playerState, playerConfig);
+                    QueryPerformanceCounter(&playerState.lastClickTime);
+                    printf("Starting playback from position %d/%d\n", 
+                           playerState.currentIndex + 1, playerConfig->clickCount);
                 }
 
-
-                sendLeftClickDown(true);
-                Sleep((int)playerConfig->clicks[clickIndex].duration);
-
-                if (!config.breakBlocks) {
-                    sendLeftClickDown(false);
+                // Check if it's time for the next click based on recorded timing
+                LARGE_INTEGER currentTime;
+                QueryPerformanceCounter(&currentTime);
+                double timeSinceLastClick = ((double)(currentTime.QuadPart - playerState.lastClickTime.QuadPart) * 1000.0) / (double)playerState.frequency.QuadPart;
+                
+                // Get current click from config
+                ParsedClick* click = &playerConfig->clicks[playerState.currentIndex];
+                
+                // For the first click or if enough time has passed for the next click
+                bool shouldClick = false;
+                if (playerState.currentIndex == 0) {
+                    shouldClick = true; // First click executes immediately
+                } else {
+                    // Check if enough time has passed since the last click
+                    // Use the CURRENT click's delay (time since previous click)
+                    if (timeSinceLastClick >= click->delay) {
+                        shouldClick = true;
+                    }
                 }
+                
+                if (shouldClick) {
+                    // Execute the click with exact same logic as clicker
+                    sendLeftClickDown(true);
+                    precisionSleep(click->duration);
 
-                Sleep((int)playerConfig->clicks[clickIndex].delay);
-
-                // Update click index with the next click
-                clickIndex = (clickIndex + 1) % playerConfig->clickCount;
+                    if (!config.breakBlocks) {
+                        sendLeftClickDown(false);
+                    }
+                    
+                    // Update timing
+                    QueryPerformanceCounter(&playerState.lastClickTime);
+                    
+                    // Move to next click
+                    playerState.currentIndex++;
+                    printf("Click %d/%d executed\n", playerState.currentIndex, playerConfig->clickCount);
+                    
+                    // Check if we've reached the end of the sequence
+                    if (playerState.currentIndex >= playerConfig->clickCount) {
+                        // Reset to beginning without new random position
+                        resetPlayerState(&playerState);
+                        playerState.isActive = true;  // Keep active for continuous playback
+                        printf("Sequence completed, restarting from beginning...\n");
+                    }
+                }
             }
         } else if (config.playerActive) {
-            clickIndex = -1; // Reset the click index
+            // Stop playback when mouse not pressed
+            if (playerState.isActive) {
+                resetPlayerState(&playerState);
+                printf("Playback stopped\n");
+            }
             PlaySoundA(NULL, NULL, SND_PURGE); // Stop any playing sound
-            Sleep(1);
+            precisionSleep(1.0);
         }
     }
 

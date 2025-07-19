@@ -12,6 +12,34 @@ void initGlobalConfig(globalConfig *config) {
     config->soundClicks = true;
 }
 
+// High-precision sleep function for accurate timing
+void precisionSleep(double milliseconds) {
+    if (milliseconds <= 0) return;
+    
+    LARGE_INTEGER frequency, start, current;
+    if (!QueryPerformanceFrequency(&frequency)) {
+        // Fallback to regular Sleep if high-precision timer unavailable
+        Sleep((DWORD)milliseconds);
+        return;
+    }
+    
+    QueryPerformanceCounter(&start);
+    double targetTicks = milliseconds * (double)frequency.QuadPart / 1000.0;
+    
+    // For delays > 2ms, use Sleep() for most of the time to avoid excessive CPU usage
+    if (milliseconds > 2.0) {
+        Sleep((DWORD)(milliseconds - 1.0)); // Sleep for most of the duration
+        milliseconds = 1.0; // Spin-wait for the remaining time
+        targetTicks = milliseconds * (double)frequency.QuadPart / 1000.0;
+        QueryPerformanceCounter(&start); // Reset start time
+    }
+    
+    // Spin-wait for precise timing (for the last 1-2ms or for very short delays)
+    do {
+        QueryPerformanceCounter(&current);
+    } while ((current.QuadPart - start.QuadPart) < targetTicks);
+}
+
 // Clear screen using Windows console API (no external process = more stealth)
 void clearScreen(void) {
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -76,8 +104,15 @@ int bedrockCursorVisible() {
 void sendLeftClickDown(bool down) {
     POINT pos;
     GetCursorPos(&pos);
-
-    PostMessageA(GetForegroundWindow(), down ? WM_LBUTTONDOWN : WM_LBUTTONUP, MK_LBUTTON, MAKELPARAM(pos.x, pos.y));
+    
+    HWND targetWindow = GetForegroundWindow();
+    if (targetWindow) {
+        // Convert screen coordinates to client coordinates
+        ScreenToClient(targetWindow, &pos);
+        
+        PostMessageA(targetWindow, down ? WM_LBUTTONDOWN : WM_LBUTTONUP, 
+                     down ? MK_LBUTTON : 0, MAKELPARAM(pos.x, pos.y));
+    }
 }
 
 //
@@ -195,4 +230,31 @@ char* getRandomWavData(WavCollection* collection, DWORD* size) {
     int index = rand() % collection->count;
     *size = collection->files[index].size;
     return collection->files[index].data;
+}
+
+// Open a file dialog to select a config file
+char* openConfigFileDialog(void) {
+    OPENFILENAME ofn;
+    char szFile[260] = {0}; // Buffer for file name
+    
+    // Initialize OPENFILENAME structure
+    ZeroMemory(&ofn, sizeof(ofn));
+    ofn.lStructSize = sizeof(ofn);
+    ofn.hwndOwner = NULL;
+    ofn.lpstrFile = szFile;
+    ofn.nMaxFile = sizeof(szFile);
+    ofn.lpstrFilter = "Config Files\0*.txt;*.cfg;*.config\0All Files\0*.*\0";
+    ofn.nFilterIndex = 1;
+    ofn.lpstrFileTitle = NULL;
+    ofn.nMaxFileTitle = 0;
+    ofn.lpstrInitialDir = NULL;
+    ofn.lpstrTitle = "Select Config File";
+    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
+    
+    // Display the Open dialog box
+    if (GetOpenFileName(&ofn)) {
+        return strdup(szFile); // Return a copy of the file path
+    }
+    
+    return NULL; // User canceled or error occurred
 }
