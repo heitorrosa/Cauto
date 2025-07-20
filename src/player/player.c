@@ -11,6 +11,7 @@ void initPlayerState(PlayerState* state) {
     memset(state, 0, sizeof(PlayerState));
     state->currentIndex = 0;
     state->isPlaying = false;
+    state->wasPlayingLastFrame = false;
     QueryPerformanceFrequency(&state->frequency);
     QueryPerformanceCounter(&state->lastClickTime);
 }
@@ -18,7 +19,19 @@ void initPlayerState(PlayerState* state) {
 void resetPlayerState(PlayerState* state) {
     state->currentIndex = 0;
     state->isPlaying = false;
+    state->wasPlayingLastFrame = false;
     QueryPerformanceCounter(&state->lastClickTime);
+}
+
+void setRandomStartPosition(PlayerState* state, int maxPosition) {
+    if (maxPosition <= 1) {
+        state->currentIndex = 0;
+        return;
+    }
+    
+    // Generate a random starting position
+    srand((unsigned int)(time(NULL) + GetTickCount()));
+    state->currentIndex = rand() % maxPosition;
 }
 
 static char* decryptHexData(const char* hexData) {

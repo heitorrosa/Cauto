@@ -22,6 +22,7 @@ typedef struct {
 typedef struct {
     int currentIndex;
     bool isPlaying;
+    bool wasPlayingLastFrame;  // Track if we were playing in the previous frame
     LARGE_INTEGER lastClickTime;
     LARGE_INTEGER frequency;
 } PlayerState;
@@ -29,6 +30,7 @@ typedef struct {
 // Function declarations
 void initPlayerState(PlayerState* state);
 void resetPlayerState(PlayerState* state);
+void setRandomStartPosition(PlayerState* state, int maxPosition);
 PlayerConfig* loadPlayerConfig(const char* input);
 void freePlayerConfig(PlayerConfig* config);
 

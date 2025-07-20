@@ -79,18 +79,15 @@ static char* saveConfig(const char* configName, RecordedClick* clicks, int click
     
     totalTime /= 1000.0; // Convert to seconds
     double averageCPS = (filteredCount > 1) ? (filteredCount - 1) / totalTime : 0.0;
-    
-    printf("\n=== Pause Filtering Results ===\n");
-    printf("Long pauses filtered: %d (over %.0fms)\n", longPausesFiltered, PAUSE_THRESHOLD_MS);
-    printf("Final click count: %d\n", filteredCount);
-    printf("Adjusted average CPS: %.2f\n", averageCPS);
+
+    printf("\nClick count: %d\n", filteredCount);
+    printf("Average CPS: %.2f\n", averageCPS);
     
     // Generate random filename
     char filename[256], randomName[33];
     generateRandomName(randomName, 32);
     sprintf(filename, "%s.txt", randomName);
     
-    printf("\nSaving configuration...\n");
     printf("Filename: %s\n", filename);
     printf("Config name: %s\n", configName);
     
@@ -132,7 +129,6 @@ static char* saveConfig(const char* configName, RecordedClick* clicks, int click
         if (file) {
             fprintf(file, "%s", hexData);
             fclose(file);
-            printf("Configuration saved successfully!\n");
             
             // Return hex data for immediate use
             char* result = strdup(hexData);
@@ -174,9 +170,7 @@ char* recordClicks(RecorderConfig* config) {
     HWND currentWindow, minecraftRecent, minecraftOld, minecraftBedrock;
     
     clearScreen();
-    printf("=== Smart Click Recorder ===\n");
-    printf("Automatic pause filtering: Delays over %.0fms will be filtered\n", PAUSE_THRESHOLD_MS);
-    printf("Press '%c' to start recording...\n", config->bindKey);
+    printf("Press '%c' to start recording...\n\n", config->bindKey);
     
     // Wait for bind key to start
     while (!(GetAsyncKeyState(bindKeyVK) & 0x8000)) {
@@ -191,10 +185,7 @@ char* recordClicks(RecorderConfig* config) {
     }
     
     clearScreen();
-    printf("=== Recording Started ===\n");
     printf("Press '%c' to stop recording\n", config->bindKey);
-    printf("Left-click to record clicks...\n");
-    printf("Long pauses (>%.0fms) will be automatically filtered\n\n", PAUSE_THRESHOLD_MS);
 
     LARGE_INTEGER lastClickEnd = {0};
     
@@ -247,7 +238,7 @@ char* recordClicks(RecorderConfig* config) {
                 
                 // Update display with pause indication
                 if (isLongPause) {
-                    printf("Click %d: Duration=%.1fms, Delay=%.1fms [LONG PAUSE - Will be filtered]\n", 
+                    printf("Click %d: Duration=%.1fms, Delay=%.1fms [FILTERED]\n", 
                            clickCount, duration, delay);
                 } else {
                     printf("Click %d: Duration=%.1fms, Delay=%.1fms\n", 
@@ -276,12 +267,9 @@ char* recordClicks(RecorderConfig* config) {
         return NULL;
     }
     
-    printf("\n=== Recording Complete ===\n");
-    printf("Total Clicks Recorded: %d\n", clickCount);
-    
     // Get config name
     char configName[256];
-    printf("\nEnter config name: ");
+    printf("\n\nEnter config name: ");
     fflush(stdin);
     if (fgets(configName, sizeof(configName), stdin)) {
         // Remove newline

@@ -44,8 +44,6 @@ int main() {
 
     clearScreen();
 
-    // websocket_example();
-
     printf("Select the desired mode:\n\n");
 
     printf("1. Standard Clicker\n");
@@ -180,7 +178,7 @@ int main() {
                 clearScreen();
                 printf("\nConfig Name: %s\n", playerConfig->configName);
                 printf("Clicks: %d\n", playerConfig->clickCount);
-                printf("Average CPS: %.2f\n\n", playerConfig->averageCPS);
+                printf("Average CPS: %.2f\n", playerConfig->averageCPS);
             }
             break;
 
@@ -377,12 +375,16 @@ int main() {
                     }
                 }
 
-                // Initialize playback on first click
+                // Initialize playback on first click or restart with new random position
                 if (!playerState.isPlaying) {
                     playerState.isPlaying = true;
-                    playerState.currentIndex = 0;
+                    
+                    // If we weren't playing last frame, set a new random start position
+                    if (!playerState.wasPlayingLastFrame) {
+                        setRandomStartPosition(&playerState, playerConfig->clickCount);
+                    }
+                    
                     QueryPerformanceCounter(&playerState.lastClickTime);
-                    printf("Starting playback...\n");
                 }
 
                 // Check if it's time for the next click
@@ -395,8 +397,8 @@ int main() {
                 
                 // For the first click or if enough time has passed
                 bool shouldClick = false;
-                if (playerState.currentIndex == 0) {
-                    shouldClick = true; // First click executes immediately
+                if (playerState.currentIndex == 0 || !playerState.wasPlayingLastFrame) {
+                    shouldClick = true; // First click or restart executes immediately
                 } else {
                     // Check if enough time has passed since the last click
                     if (timeSinceLastClick >= click->delay) {
@@ -405,7 +407,6 @@ int main() {
                 }
                 
                 if (shouldClick) {
-                    // Execute the click
                     sendLeftClickDown(true);
                     precisionSleep(click->duration);
 
@@ -419,21 +420,21 @@ int main() {
                     // Move to next click
                     playerState.currentIndex++;
                     
-                    // Check if we've reached the end of the sequence
                     if (playerState.currentIndex >= playerConfig->clickCount) {
-                        // Reset to beginning for continuous playback
                         playerState.currentIndex = 0;
-                        printf("Sequence completed, restarting...\n");
                     }
                 }
+                
+                // Mark that we were playing this frame
+                playerState.wasPlayingLastFrame = true;
             }
         } else if (config.playerActive) {
-            // Stop playback when mouse not pressed
             if (playerState.isPlaying) {
                 resetPlayerState(&playerState);
-                printf("Playback stopped\n");
             }
-            PlaySoundA(NULL, NULL, SND_PURGE); // Stop any playing sound
+            // Mark that we weren't playing this frame
+            playerState.wasPlayingLastFrame = false;
+            PlaySoundA(NULL, NULL, SND_PURGE);
             precisionSleep(1.0);
         }
     }
