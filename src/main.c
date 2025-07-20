@@ -9,51 +9,6 @@
 void getHWID(char* buffer, size_t bufferSize);
 int HWIDchecker(char *HWIDListURL);
 
-// Player state structure (moved from player.h to main.c)
-typedef struct {
-    int currentIndex;
-    bool isActive;
-    LARGE_INTEGER lastClickTime;
-    double timeAccumulator;
-    int randomStartPosition;
-    bool useRandomStart;
-    LARGE_INTEGER frequency;
-} PlayerState;
-
-// Player logic functions (moved from player.c to main.c)
-static void initPlayerState(PlayerState* state) {
-    memset(state, 0, sizeof(PlayerState));
-    state->currentIndex = 0;
-    state->isActive = false;
-    state->timeAccumulator = 0.0;
-    state->randomStartPosition = 0;
-    state->useRandomStart = true;
-    QueryPerformanceFrequency(&state->frequency);
-    QueryPerformanceCounter(&state->lastClickTime);
-}
-
-static void resetPlayerState(PlayerState* state) {
-    state->currentIndex = 0;
-    state->isActive = false;
-    state->timeAccumulator = 0.0;
-    QueryPerformanceCounter(&state->lastClickTime);
-}
-
-static void setRandomStartPosition(PlayerState* state, PlayerConfig* config) {
-    if (config && config->clickCount > 0 && state->useRandomStart) {
-        // Start from a random position within the first 50% of clicks
-        int maxStart = config->clickCount / 2;
-        if (maxStart < 1) maxStart = 1;
-        state->randomStartPosition = rand() % maxStart;
-        state->currentIndex = state->randomStartPosition;
-        printf("Random start position set to: %d/%d\n", 
-               state->currentIndex + 1, config->clickCount);
-    } else {
-        state->randomStartPosition = 0;
-        state->currentIndex = 0;
-    }
-}
-
 int main() {
     // char HWIDListURL[] = "resources/hwidlist.txt";
 
@@ -74,16 +29,16 @@ int main() {
 
     globalConfig config;
     clickerConfig clicker;
-    clickRecorder recorder;
+    RecorderConfig recorder = {0};
     PlayerConfig* playerConfig = NULL;
-    PlayerState playerState;  // New player state structure
+    PlayerState playerState;
     RandomState randState;
     WavCollection soundCollection = {0};
 
     initGlobalConfig(&config);
     initClickerConfig(&clicker);
     initRandomState(&randState);
-    initPlayerState(&playerState);  // Initialize player state
+    initPlayerState(&playerState);
 
     int clickerMode;
 
@@ -166,78 +121,67 @@ int main() {
             config.leftActive = false;
 
             int choice;
+            clearScreen();
+            printf("1. Select a config file\n");
+            printf("2. Enter Raw config\n");
+            printf("3. Butterfly Click Profile\n");
+            printf("4. Jitter Click Profile\n\n");
 
-                clearScreen();
-                printf("1. Select a config file\n");
-                printf("2. Select a Raw config\n");
-                printf("3. Butterfly Click Profile (10k Clicks)\n");
-                printf("4. Jitter Click Profile (10k Clicks)\n\n");
+            printf("Input your choice: ");
+            scanf_s("%d", &choice);
 
-                printf("Input your choice: ");
-                scanf_s("%d", &choice);
-
-                switch (choice) {
-                    case 1:
-                        if (playerConfig) freePlayerConfig(playerConfig);
-                        playerConfig = getPlayerConfig(false, NULL);
-                        if (playerConfig) {
-                            clearScreen();
-                            printf("\nConfig Name: %s\n", playerConfig->configName);
-                            printf("Clicks: %d (%d Double Clicks)\n", playerConfig->unifiedClicks, playerConfig->doubleClicks);
-                            printf("Average CPS: %.2f\n\n", playerConfig->averageCPS);
+            switch (choice) {
+                case 1:
+                    if (playerConfig) freePlayerConfig(playerConfig);
+                    {
+                        char* filename = openConfigFileDialog();
+                        if (filename) {
+                            playerConfig = loadPlayerConfig(filename);
+                            free(filename);
                         }
-                        break;
+                    }
+                    break;
 
-                    case 2:
-                            
-                            fflush(stdin);
-
-                        {
-                            clearScreen();
-                            printf("\nEnter raw config: ");
-                            char* rawConfig = malloc(1000000);
-                            if (!rawConfig) {
-                                printf("Error: Memory allocation failed\n");
-                                break;
-                            }
-                            
+                case 2:
+                    fflush(stdin);
+                    {
+                        clearScreen();
+                        printf("\nEnter raw config: ");
+                        char* rawConfig = malloc(1000000);
+                        if (rawConfig) {
                             if (fgets(rawConfig, 1000000, stdin) != NULL) {
                                 rawConfig[strcspn(rawConfig, "\n")] = 0;
-                                
                                 if (strlen(rawConfig) > 0) {
                                     if (playerConfig) freePlayerConfig(playerConfig);
-                                    playerConfig = getPlayerConfig(true, rawConfig);  // Store the returned config
-                                    if (playerConfig) {
-                                        clearScreen();
-                                        printf("\nConfig Name: %s\n", playerConfig->configName);
-                                        printf("Clicks: %d (%d Double Clicks)\n", playerConfig->unifiedClicks, playerConfig->doubleClicks);
-                                        printf("Average CPS: %.2f\n\n", playerConfig->averageCPS);
-                                    }
-                                } else {
-                                    printf("No config data entered.\n");
+                                    playerConfig = loadPlayerConfig(rawConfig);
                                 }
-                            } else {
-                                printf("Error reading config data.\n");
                             }
-                            
                             free(rawConfig);
                         }
-                        break;
+                    }
+                    break;
 
-                    case 3:
-                        if (playerConfig) free(playerConfig);
-                        playerConfig = getPlayerConfig(true, ButterflyConfig);
-                        break;
+                case 3:
+                    if (playerConfig) freePlayerConfig(playerConfig);
+                    playerConfig = loadPlayerConfig("butterfly");
+                    break;
 
-                    case 4:
-                        if (playerConfig) free(playerConfig);
-                        playerConfig = getPlayerConfig(true, JitterConfig);
-                        break;
-                        
-                    default:
-                        printf("Invalid choice. Please select a valid option.\n");
-                        break;
-                }
+                case 4:
+                    if (playerConfig) freePlayerConfig(playerConfig);
+                    playerConfig = loadPlayerConfig("jitter");
+                    break;
+                    
+                default:
+                    printf("Invalid choice. Please select a valid option.\n");
+                    break;
+            }
+
+            if (playerConfig) {
+                clearScreen();
+                printf("\nConfig Name: %s\n", playerConfig->configName);
+                printf("Clicks: %d\n", playerConfig->clickCount);
+                printf("Average CPS: %.2f\n\n", playerConfig->averageCPS);
+            }
             break;
 
         case 3:
@@ -245,20 +189,41 @@ int main() {
             
             printf("Bind Key for Recording (default: INSERT): ");
             scanf_s(" %c", &recorder.bindKey);
+            if (recorder.bindKey == '\0') recorder.bindKey = 'I'; // Default to INSERT
 
             fflush(stdin);
 
+            char beepInput;
             printf("Beep on Start/End? (Y or N): ");
-            scanf_s(" %c", &recorder.beepOnStart);
+            scanf_s(" %c", &beepInput);
+            recorder.beepOnStart = (beepInput == 'Y' || beepInput == 'y');
 
             fflush(stdin);
 
+            char mcOnlyInput;
             printf("Minecraft Only Recording? (Y or N): ");
-            scanf_s(" %c", &recorder.mcOnly);
+            scanf_s(" %c", &mcOnlyInput);
+            recorder.mcOnly = (mcOnlyInput == 'Y' || mcOnlyInput == 'y');
 
             fflush(stdin);
 
-            recordClicks(&recorder);
+            char* recordedConfig = recordClicks(&recorder);
+            if (recordedConfig) {
+                printf("\nWould you like to test the recorded config? (Y/N): ");
+                char testInput;
+                scanf_s(" %c", &testInput);
+                
+                if (testInput == 'Y' || testInput == 'y') {
+                    if (playerConfig) freePlayerConfig(playerConfig);
+                    playerConfig = loadPlayerConfig(recordedConfig);
+                    if (playerConfig) {
+                        config.playerActive = true;
+                        config.leftActive = false;
+                        printf("Config loaded for testing!\n");
+                    }
+                }
+                free(recordedConfig);
+            }
             break;
 
         default:
@@ -413,36 +378,34 @@ int main() {
                 }
 
                 // Initialize playback on first click
-                if (!playerState.isActive) {
-                    playerState.isActive = true;
-                    setRandomStartPosition(&playerState, playerConfig);
+                if (!playerState.isPlaying) {
+                    playerState.isPlaying = true;
+                    playerState.currentIndex = 0;
                     QueryPerformanceCounter(&playerState.lastClickTime);
-                    printf("Starting playback from position %d/%d\n", 
-                           playerState.currentIndex + 1, playerConfig->clickCount);
+                    printf("Starting playback...\n");
                 }
 
-                // Check if it's time for the next click based on recorded timing
+                // Check if it's time for the next click
                 LARGE_INTEGER currentTime;
                 QueryPerformanceCounter(&currentTime);
                 double timeSinceLastClick = ((double)(currentTime.QuadPart - playerState.lastClickTime.QuadPart) * 1000.0) / (double)playerState.frequency.QuadPart;
                 
                 // Get current click from config
-                ParsedClick* click = &playerConfig->clicks[playerState.currentIndex];
+                ClickData* click = &playerConfig->clicks[playerState.currentIndex];
                 
-                // For the first click or if enough time has passed for the next click
+                // For the first click or if enough time has passed
                 bool shouldClick = false;
                 if (playerState.currentIndex == 0) {
                     shouldClick = true; // First click executes immediately
                 } else {
                     // Check if enough time has passed since the last click
-                    // Use the CURRENT click's delay (time since previous click)
                     if (timeSinceLastClick >= click->delay) {
                         shouldClick = true;
                     }
                 }
                 
                 if (shouldClick) {
-                    // Execute the click with exact same logic as clicker
+                    // Execute the click
                     sendLeftClickDown(true);
                     precisionSleep(click->duration);
 
@@ -455,20 +418,18 @@ int main() {
                     
                     // Move to next click
                     playerState.currentIndex++;
-                    printf("Click %d/%d executed\n", playerState.currentIndex, playerConfig->clickCount);
                     
                     // Check if we've reached the end of the sequence
                     if (playerState.currentIndex >= playerConfig->clickCount) {
-                        // Reset to beginning without new random position
-                        resetPlayerState(&playerState);
-                        playerState.isActive = true;  // Keep active for continuous playback
-                        printf("Sequence completed, restarting from beginning...\n");
+                        // Reset to beginning for continuous playback
+                        playerState.currentIndex = 0;
+                        printf("Sequence completed, restarting...\n");
                     }
                 }
             }
         } else if (config.playerActive) {
             // Stop playback when mouse not pressed
-            if (playerState.isActive) {
+            if (playerState.isPlaying) {
                 resetPlayerState(&playerState);
                 printf("Playback stopped\n");
             }

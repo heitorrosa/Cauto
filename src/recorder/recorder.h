@@ -4,26 +4,24 @@
 #include "../resources/include.c"
 #include "../utils/utils.h"
 
-#define MAX_CLICKS 1000000
+#define MAX_CLICKS 10000
+#define PAUSE_THRESHOLD_MS 200.0  // Fixed threshold: delays over 200ms are filtered
 
+// Simple recorder configuration
 typedef struct {
-    int unifiedClickCount;
-    int doubleClicks;
-    int totalClicks;
-
-    char beepOnStart;
-    char mcOnly;
     char bindKey;
-} clickRecorder;
+    bool beepOnStart;
+    bool mcOnly;
+} RecorderConfig;
 
+// Simple click structure for recording
 typedef struct {
-    int id;             // Unique identifier for this click
     double duration;    // How long the button was held
     double delay;       // Time until next click
-    bool hasDelay;      // Whether delay has been set
-} UnifiedClick;
+    bool isFiltered;    // Whether this click had a long pause before it
+} RecordedClick;
 
-// Recording function - returns encrypted hex config data, keeps all features
-char* recordClicks(clickRecorder* recorder);
+// Recording function - returns encrypted hex config data
+char* recordClicks(RecorderConfig* config);
 
 #endif // RECORDER_H

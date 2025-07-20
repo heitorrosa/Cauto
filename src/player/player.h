@@ -4,28 +4,32 @@
 #include "../resources/include.c"
 #include "../utils/utils.h"
 
+// Simple click data structure
 typedef struct {
-    int id;
-    double duration;
-    double delay;
-} ParsedClick;
+    double duration;    // Click duration in milliseconds
+    double delay;       // Delay until next click in milliseconds
+} ClickData;
 
+// Simple player configuration
 typedef struct {
     char configName[256];
-    int totalClicks;
-    int doubleClicks;
-    int unifiedClicks;
-    double averageCPS;
-    ParsedClick* clicks;
+    ClickData* clicks;
     int clickCount;
+    double averageCPS;
 } PlayerConfig;
 
-// External config data declarations
-extern char* ButterflyConfig;
-extern char* JitterConfig;
+// Player state for playback
+typedef struct {
+    int currentIndex;
+    bool isPlaying;
+    LARGE_INTEGER lastClickTime;
+    LARGE_INTEGER frequency;
+} PlayerState;
 
-// Config management functions only
-PlayerConfig* getPlayerConfig(bool getRawConfig, const char* rawConfigData);
+// Function declarations
+void initPlayerState(PlayerState* state);
+void resetPlayerState(PlayerState* state);
+PlayerConfig* loadPlayerConfig(const char* input);
 void freePlayerConfig(PlayerConfig* config);
 
 #endif // PLAYER_H

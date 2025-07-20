@@ -17,7 +17,6 @@ set(CAUTO_SOURCES
     src/recorder/recorder.c
     src/utils/utils.c
     src/utils/hwid.c
-    src/websocket_example.c
 )
 
 # Create the main executable

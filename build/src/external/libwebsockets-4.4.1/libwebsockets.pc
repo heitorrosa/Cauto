@@ -1,0 +1,11 @@
+prefix="C:/Program Files (x86)/Cauto"
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: libwebsockets
+Description: Websockets server and client library
+Version: 4.4.0-5c7104e
+
+Libs: -L${libdir} -lwebsockets
+Cflags: -I${includedir}
