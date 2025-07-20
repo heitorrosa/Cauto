@@ -185,9 +185,9 @@ int main() {
         case 3:
             clearScreen();
             
-            printf("Bind Key for Recording (default: INSERT): ");
+            printf("Bind Key for Recording (default: I): ");
             scanf_s(" %c", &recorder.bindKey);
-            if (recorder.bindKey == '\0') recorder.bindKey = 'I'; // Default to INSERT
+            if (recorder.bindKey == '\0') recorder.bindKey = 'I';
 
             fflush(stdin);
 
