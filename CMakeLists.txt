@@ -47,9 +47,6 @@ if(WIN32)
     endif()
 endif()
 
-# Add libwebsockets (compulsory)
-message(STATUS "Building with libwebsockets support (compulsory)")
-
 # Check if libwebsockets source exists
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/external/libwebsockets-4.4.1/CMakeLists.txt")
     # Configure libwebsockets with minimal features
