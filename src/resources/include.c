@@ -10,3 +10,7 @@
 #include <mmsystem.h>
 
 #include <libwebsockets.h>
+
+// Config limits for large files
+#define MAX_CLICKS 1000000      // 1 million clicks max
+#define MAX_CONFIG_SIZE 50000000 // 50MB max config size

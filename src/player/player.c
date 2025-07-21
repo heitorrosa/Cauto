@@ -86,7 +86,7 @@ static PlayerConfig* parseConfigData(const char* data) {
         sscanf(cpsLine, "Average CPS: %lf", &config->averageCPS);
     }
     
-    if (config->clickCount <= 0 || config->clickCount > 100000) {
+    if (config->clickCount <= 0 || config->clickCount > 1000000) {
         free(config);
         return NULL;
     }
@@ -157,6 +157,12 @@ PlayerConfig* loadPlayerConfig(const char* input) {
             fseek(file, 0, SEEK_END);
             long size = ftell(file);
             fseek(file, 0, SEEK_SET);
+            
+            if (size > 50000000) { // 50MB limit for config files
+                printf("Error: Config file too large (max 50MB)\n");
+                fclose(file);
+                return NULL;
+            }
             
             char* fileData = malloc(size + 1);
             if (fileData) {

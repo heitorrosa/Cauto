@@ -1,0 +1,3 @@
+"D:\Program Files\CMake\bin\cmake.exe" -E rm -f CMakeFiles\Cauto.dir/objects.a
+"D:\Program Files\MSYS2\mingw64\bin\ar.exe" qc CMakeFiles\Cauto.dir/objects.a @CMakeFiles\Cauto.dir\objects1.rsp
+"D:\Program Files\MSYS2\mingw64\bin\cc.exe" -g -Wl,--whole-archive CMakeFiles\Cauto.dir/objects.a -Wl,--no-whole-archive -o Cauto.exe -Wl,--out-implib,libCauto.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\Cauto.dir\linkLibs.rsp

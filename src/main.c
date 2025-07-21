@@ -146,9 +146,9 @@ int main() {
                     {
                         clearScreen();
                         printf("\nEnter raw config: ");
-                        char* rawConfig = malloc(1000000);
+                        char* rawConfig = malloc(10485760); // 10MB buffer
                         if (rawConfig) {
-                            if (fgets(rawConfig, 1000000, stdin) != NULL) {
+                            if (fgets(rawConfig, 10485760, stdin) != NULL) {
                                 rawConfig[strcspn(rawConfig, "\n")] = 0;
                                 if (strlen(rawConfig) > 0) {
                                     if (playerConfig) freePlayerConfig(playerConfig);

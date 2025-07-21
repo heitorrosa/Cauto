@@ -92,7 +92,7 @@ static char* saveConfig(const char* configName, RecordedClick* clicks, int click
     printf("Config name: %s\n", configName);
     
     // Build config data
-    char* buffer = malloc(100000); // 100KB buffer should be enough
+    char* buffer = malloc(10485760); // 10MB buffer for large configs
     if (!buffer) {
         printf("Error: Memory allocation failed\n");
         return NULL;
