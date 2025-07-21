@@ -41,6 +41,7 @@ int main() {
     initPlayerState(&playerState);
 
     int clickerMode;
+    char recorderTestInput;
 
     clearScreen();
 
@@ -208,10 +209,10 @@ int main() {
             char* recordedConfig = recordClicks(&recorder);
             if (recordedConfig) {
                 printf("\nWould you like to test the recorded config? (Y/N): ");
-                char testInput;
-                scanf_s(" %c", &testInput);
-                
-                if (testInput == 'Y' || testInput == 'y') {
+
+                scanf_s(" %c", &recorderTestInput);
+
+                if (recorderTestInput == 'Y' || recorderTestInput == 'y') {
                     if (playerConfig) freePlayerConfig(playerConfig);
                     playerConfig = loadPlayerConfig(recordedConfig);
                     if (playerConfig) {
@@ -230,62 +231,64 @@ int main() {
     }
 
 
-    // Global Config (Idk why it doesnt work with switch)
-
-    char mcOnlyInput;
-    char clickInventoryInput;
-    char breakBlocksInput;
-    
-    fflush(stdin);
-
-    printf("\nMinecraft Only (Y or N): ");
-    scanf_s(" %c", &mcOnlyInput);
-    if(mcOnlyInput == 'Y' || mcOnlyInput == 'y') {
-        config.mcOnly = true;
-    } else if(mcOnlyInput == 'N' || mcOnlyInput == 'n') {
-        config.mcOnly = false;
-    } else {
-        printf("Invalid input. Defaulting to 'N'.\n");
-        config.mcOnly = false;
-    }
-
-    fflush(stdin);
-
-    printf("\nClick Inventory (Y or N): ");
-    scanf_s(" %c", &clickInventoryInput);
-    if(clickInventoryInput == 'Y' || clickInventoryInput == 'y') {
-        config.clickInventory = true;
-    } else if(clickInventoryInput == 'N' || clickInventoryInput == 'n') {
-        config.clickInventory = false;
-    } else {
-        printf("Invalid input. Defaulting to 'N'.\n");
-        config.clickInventory = false;
-    }
-
-    fflush(stdin);
-    printf("\nBreak Blocks (Y or N): ");
-    scanf_s(" %c", &breakBlocksInput);
-    if(breakBlocksInput == 'Y' || breakBlocksInput == 'y') {
-        config.breakBlocks = true;
-    } else if(breakBlocksInput == 'N' || breakBlocksInput == 'n') {
-        config.breakBlocks = false;
-    } else {
-        printf("Invalid input. Defaulting to 'Y'.\n");
-        config.breakBlocks = true;
-    }
-
-    fflush(stdin);
-
-    // SoundClicks selector
-    if (config.soundClicks) {
-        printf("\nSelect WAV sound files for clicks...\n");
+    if (clickerMode != 3 || (clickerMode == 3 && (recorderTestInput == 'Y' || recorderTestInput == 'y'))) {
+        char mcOnlyInput;
+        char clickInventoryInput;
+        char breakBlocksInput;
         
-        if (openWavFileDialog(&soundCollection)) {
-            printf("Loaded %d WAV file(s) successfully.\n", soundCollection.count);
+        fflush(stdin);
+
+        printf("\nMinecraft Only (Y or N): ");
+        scanf_s(" %c", &mcOnlyInput);
+        if(mcOnlyInput == 'Y' || mcOnlyInput == 'y') {
+            config.mcOnly = true;
+        } else if(mcOnlyInput == 'N' || mcOnlyInput == 'n') {
+            config.mcOnly = false;
         } else {
-            printf("No WAV files selected. Sound will be disabled.\n");
-            config.soundClicks = false;
+            printf("Invalid input. Defaulting to 'N'.\n");
+            config.mcOnly = false;
         }
+
+        fflush(stdin);
+
+        printf("\nClick Inventory (Y or N): ");
+        scanf_s(" %c", &clickInventoryInput);
+        if(clickInventoryInput == 'Y' || clickInventoryInput == 'y') {
+            config.clickInventory = true;
+        } else if(clickInventoryInput == 'N' || clickInventoryInput == 'n') {
+            config.clickInventory = false;
+        } else {
+            printf("Invalid input. Defaulting to 'N'.\n");
+            config.clickInventory = false;
+        }
+
+        fflush(stdin);
+        printf("\nBreak Blocks (Y or N): ");
+        scanf_s(" %c", &breakBlocksInput);
+        if(breakBlocksInput == 'Y' || breakBlocksInput == 'y') {
+            config.breakBlocks = true;
+        } else if(breakBlocksInput == 'N' || breakBlocksInput == 'n') {
+            config.breakBlocks = false;
+        } else {
+            printf("Invalid input. Defaulting to 'Y'.\n");
+            config.breakBlocks = true;
+        }
+
+        fflush(stdin);
+
+        // SoundClicks selector
+        if (config.soundClicks) {
+            printf("\nSelect WAV sound files for clicks...\n");
+            
+            if (openWavFileDialog(&soundCollection)) {
+                printf("Loaded %d WAV file(s) successfully.\n", soundCollection.count);
+            } else {
+                printf("No WAV files selected. Sound will be disabled.\n");
+                config.soundClicks = false;
+            }
+        }
+    } else {
+        return 0;
     }
 
 
