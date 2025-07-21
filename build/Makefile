@@ -156,6 +156,13 @@ all: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start D:\Repositories\Cauto\build\CMakeFiles 0
 .PHONY : all
 
+# The main codegen target
+codegen: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start D:\Repositories\Cauto\build\CMakeFiles D:\Repositories\Cauto\build\\CMakeFiles\progress.marks
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 codegen
+	$(CMAKE_COMMAND) -E cmake_progress_start D:\Repositories\Cauto\build\CMakeFiles 0
+.PHONY : codegen
+
 # The main clean target
 clean:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 clean
@@ -746,6 +753,7 @@ help:
 	@echo ... all (the default if no target is provided)
 	@echo ... clean
 	@echo ... depend
+	@echo ... codegen
 	@echo ... edit_cache
 	@echo ... install
 	@echo ... install/local

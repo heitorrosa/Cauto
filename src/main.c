@@ -206,6 +206,15 @@ int main() {
 
             fflush(stdin);
 
+            printf("Pause Filter Threshold (ms, default 200): ");
+            scanf_s("%f", &recorder.pauseThreshold);
+            if (recorder.pauseThreshold <= 0) {
+                recorder.pauseThreshold = 200.0f;  // Default to 200ms
+                printf("Invalid threshold. Using default: 200ms\n");
+            }
+
+            fflush(stdin);
+
             char* recordedConfig = recordClicks(&recorder);
             if (recordedConfig) {
                 printf("\nWould you like to test the recorded config? (Y/N): ");

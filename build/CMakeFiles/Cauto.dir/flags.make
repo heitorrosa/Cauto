@@ -6,5 +6,5 @@ C_DEFINES = -DWIN32_LEAN_AND_MEAN -DWITH_WEBSOCKETS -D_CRT_SECURE_NO_WARNINGS -D
 
 C_INCLUDES = @CMakeFiles/Cauto.dir/includes_C.rsp
 
-C_FLAGS = -g -std=gnu11 -Wall -Wno-deprecated-declarations -Wno-unused-function
+C_FLAGS = -g -std=gnu2x -Wall -Wno-deprecated-declarations -Wno-unused-function
 

@@ -4,14 +4,15 @@
 #include "../resources/include.c"
 #include "../utils/utils.h"
 
-#define MAX_CLICKS 10000
-#define PAUSE_THRESHOLD_MS 200.0  // Fixed threshold: delays over 200ms are filtered
+#define MAX_CLICKS 1000000
+#define DEFAULT_PAUSE_THRESHOLD_MS 200.0  // Default threshold: delays over 200ms are filtered
 
 // Simple recorder configuration
 typedef struct {
     char bindKey;
     bool beepOnStart;
     bool mcOnly;
+    float pauseThreshold;  // User-configurable pause threshold in milliseconds
 } RecorderConfig;
 
 // Simple click structure for recording

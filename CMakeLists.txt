@@ -1,16 +1,16 @@
-cmake_minimum_required(VERSION 3.10.0)
+cmake_minimum_required(VERSION 4.0.3)
 
-project(Cauto VERSION 0.1.0 LANGUAGES C)
+project(Cauto VERSION 0.0.0 LANGUAGES C)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 
 # Set C standard
-set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-# Source files
-set(CAUTO_SOURCES
+# Create the main executable
+add_executable(Cauto 
     src/main.c
     src/clicker/clicker.c
     src/player/player.c
@@ -18,9 +18,6 @@ set(CAUTO_SOURCES
     src/utils/utils.c
     src/utils/hwid.c
 )
-
-# Create the main executable
-add_executable(Cauto ${CAUTO_SOURCES})
 
 # Include directories
 target_include_directories(Cauto PRIVATE src)

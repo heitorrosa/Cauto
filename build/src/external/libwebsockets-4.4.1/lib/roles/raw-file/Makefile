@@ -156,6 +156,13 @@ all: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start D:\Repositories\Cauto\build\CMakeFiles 0
 .PHONY : all
 
+# The main codegen target
+codegen: cmake_check_build_system
+	cd /d D:\Repositories\Cauto\build && $(CMAKE_COMMAND) -E cmake_progress_start D:\Repositories\Cauto\build\CMakeFiles D:\Repositories\Cauto\build\src\external\libwebsockets-4.4.1\lib\roles\raw-file\\CMakeFiles\progress.marks
+	cd /d D:\Repositories\Cauto\build && $(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/external/libwebsockets-4.4.1/lib/roles/raw-file/codegen
+	$(CMAKE_COMMAND) -E cmake_progress_start D:\Repositories\Cauto\build\CMakeFiles 0
+.PHONY : codegen
+
 # The main clean target
 clean:
 	cd /d D:\Repositories\Cauto\build && $(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/external/libwebsockets-4.4.1/lib/roles/raw-file/clean
@@ -186,6 +193,7 @@ help:
 	@echo ... all (the default if no target is provided)
 	@echo ... clean
 	@echo ... depend
+	@echo ... codegen
 	@echo ... edit_cache
 	@echo ... install
 	@echo ... install/local

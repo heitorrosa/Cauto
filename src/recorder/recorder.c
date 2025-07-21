@@ -33,7 +33,7 @@ static double getTimeDifferenceMs(LARGE_INTEGER start, LARGE_INTEGER end, LARGE_
 }
 
 // Save configuration with encryption and pause filtering
-static char* saveConfig(const char* configName, RecordedClick* clicks, int clickCount) {
+static char* saveConfig(const char* configName, RecordedClick* clicks, int clickCount, RecorderConfig* config) {
     // Filter out clicks with long pauses and calculate statistics
     int filteredCount = 0;
     double totalTime = 0.0;
@@ -46,7 +46,7 @@ static char* saveConfig(const char* configName, RecordedClick* clicks, int click
             filteredCount++;
             totalTime += clicks[i].duration;
         } else {
-            if (clicks[i].delay <= PAUSE_THRESHOLD_MS) {
+            if (clicks[i].delay <= config->pauseThreshold) {
                 // Normal delay, include this click
                 clicks[i].isFiltered = false;
                 filteredCount++;
@@ -61,7 +61,7 @@ static char* saveConfig(const char* configName, RecordedClick* clicks, int click
                 double avgDelay = 0.0;
                 int validDelays = 0;
                 for (int j = 1; j < i; j++) {
-                    if (!clicks[j].isFiltered && clicks[j].delay <= PAUSE_THRESHOLD_MS) {
+                    if (!clicks[j].isFiltered && clicks[j].delay <= config->pauseThreshold) {
                         avgDelay += clicks[j].delay;
                         validDelays++;
                     }
@@ -82,6 +82,7 @@ static char* saveConfig(const char* configName, RecordedClick* clicks, int click
 
     printf("\nClick count: %d\n", filteredCount);
     printf("Average CPS: %.2f\n", averageCPS);
+    printf("Pauses filtered (>%.1fms): %d\n", config->pauseThreshold, longPausesFiltered);
     
     // Generate random filename
     char filename[256], randomName[33];
@@ -227,7 +228,7 @@ char* recordClicks(RecorderConfig* config) {
                 bool isLongPause = false;
                 if (clickCount > 0 && lastClickEnd.QuadPart > 0) {
                     delay = getTimeDifferenceMs(lastClickEnd, startTime, frequency);
-                    isLongPause = (delay > PAUSE_THRESHOLD_MS);
+                    isLongPause = (delay > config->pauseThreshold);
                 }
                 
                 // Store click data
@@ -282,7 +283,7 @@ char* recordClicks(RecorderConfig* config) {
     }
     
     // Save and return encrypted config with pause filtering
-    char* result = saveConfig(configName, clicks, clickCount);
+    char* result = saveConfig(configName, clicks, clickCount, config);
     
     free(clicks);
     return result;

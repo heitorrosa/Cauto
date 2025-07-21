@@ -6,5 +6,5 @@ C_DEFINES = -DLWS_BUILDING_STATIC -DWINVER=0x0601 -D_WIN32_WINNT=0x0601
 
 C_INCLUDES = @CMakeFiles/websockets.dir/includes_C.rsp
 
-C_FLAGS = -D__USE_MINGW_ANSI_STDIO -Wno-deprecated-declarations -Wno-deprecated -Wall -Wsign-compare -fvisibility=hidden  -Wuninitialized -Wtype-limits -Wignored-qualifiers  -Wno-unused-label -Wno-unused-function -Wno-unused-variable -Werror -g -std=gnu11
+C_FLAGS = -D__USE_MINGW_ANSI_STDIO -Wno-deprecated-declarations -Wno-deprecated -Wall -Wsign-compare -fvisibility=hidden  -Wuninitialized -Wtype-limits -Wignored-qualifiers  -Wno-unused-label -Wno-unused-function -Wno-unused-variable -Werror -g -std=gnu2x
 
