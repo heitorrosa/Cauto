@@ -1,6 +1,9 @@
 * {
     margin: 0;
-    font-family: system-ui;
+    padding: 0;
+    font-family: 'Segoe UI';
+    
+    color: #000000;
 }
 
 .headerBar {
@@ -8,10 +11,11 @@
 }
 
 .headerBar #menu {
-    justify-self: center;
+    background-color: #B0B0B0;
+
     margin-top: -3.5rem;
 
-    background-color: #f0f0f0;
+    justify-self: center;
     border-radius: 33px;
     padding: 0.75rem 2.5rem;
 }
@@ -33,6 +37,10 @@
 
 
 
+/* */
+/* Footer */
+/* */
+
 .footerBar {
   position: relative;
   bottom: 0;
@@ -40,11 +48,12 @@
 }
 
 .footerBar a {
-    color: #000;
     text-decoration: none;
 
     justify-content: center;
     display: flex;
+
+    line-height: 0.75rem;
 
     margin-bottom: 0.5rem;
 }

@@ -206,7 +206,7 @@ int main() {
 
             fflush(stdin);
 
-            printf("Pause Filter Threshold (ms, default 200): ");
+            printf("Pause Filter Threshold: ");
             scanf_s("%f", &recorder.pauseThreshold);
             if (recorder.pauseThreshold <= 0) {
                 recorder.pauseThreshold = 200.0f;  // Default to 200ms
