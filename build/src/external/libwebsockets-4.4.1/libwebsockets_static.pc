@@ -5,7 +5,7 @@ includedir=${prefix}/include
 
 Name: libwebsockets_static
 Description: Websockets server and client static library
-Version: 4.4.0-47b5f5f
+Version: 4.4.0-82f9e1c
 
 Libs: -L${libdir} -l:libwebsockets.a
 Libs.private:
