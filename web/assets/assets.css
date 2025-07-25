@@ -214,7 +214,7 @@ input:checked + .slider:before {
     justify-content: center;
     display: grid;
 
-    height: 13.125rem;
+    height: 15rem;
     width: 75%;
 
     border: none;
@@ -240,8 +240,8 @@ input:checked + .slider:before {
     justify-content: center;
     display: grid;
 
-    height: 2.5rem;
-    width: 75%;
+    height: auto;
+    width: auto;
 
     border: none;
     border-radius: 8px;

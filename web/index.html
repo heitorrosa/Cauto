@@ -55,8 +55,8 @@
             <legend style="padding-left: 2rem; padding-bottom: 0.75rem">Left Clicker</legend>
 
             <form id="leftClicker" onsubmit="">
-                <label class="switch" for="leftClicker.Toggle" style="scale: 0.60">
-                    <a style="padding-left: 4.25rem; font-size: 24px; font-weight: 500;">Enable</a>
+                <label class="switch" for="leftClicker.Toggle" style="scale: 0.76">
+                    <a style="padding-left: 4.25rem; font-size: 28px; font-weight: 500;">Enable</a>
                     <input type="checkbox" id="leftClicker.Toggle" checked>
                     <span class="slider round"></span>
                 </label> <br>
@@ -121,13 +121,33 @@
                     <a>20</a>
                 </div>
             </form>
+
+            <div style="padding-bottom: 2rem"></div>
+
+            <div class="presetConfigs" align="center">
+                <a style="font-size: 24px">Preset Configurations</a>
+
+                <div style="padding-bottom: 0.5rem;"></div>
+
+                <button class="smallButton" onclick="">
+                    <div></div>
+                    <a style="font-weight: 500">Default</a>
+
+                </button>
+
+                    <button class="smallButton" onclick="">
+                    <div></div>
+                    <a style="font-weight: 500">Default</a>
+
+                </button>
+            </div>
         </fieldset>
 
-        <fieldset class="soundClicks" style="position: relative; left: 36rem; bottom: 34.33rem; ">
+        <fieldset class="soundClicks" style="position: relative; left: 36rem; bottom: 34.33rem; width: 25rem">
             <legend style="padding-left: 2rem; padding-bottom: 0.75rem">SoundClicks</legend>
 
             <button class="bigButton" onclick="">
-                <div></div>
+                <a></a>
                 <a style="font-size: 24px; font-weight: 500">Select WAV files</a>
                 <a style="font-size: 18px"><span class="soundClicker.selectedFiles">0</span> files selected</a>
             </button>
@@ -135,7 +155,6 @@
             <div style="padding-bottom: 1rem;"></div>
 
             <button class="smallButton" onclick="">
-                <div></div>
                 <a style="font-weight: 500">Remove Selected Files</a>
             </button>
 
