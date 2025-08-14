@@ -6,12 +6,9 @@
 #include "recorder/recorder.h"
 #include "utils/hwid.h"
 
-void getHWID(char* buffer, size_t bufferSize);
-int HWIDchecker(char *HWIDListURL);
-
 int main() {
     /*
-    char HWIDListURL[] = "resources/hwidlist.txt";
+    char HWIDListURL[] = "common/hwidlist.txt";
 
     if(HWIDchecker(HWIDListURL) == -1) {
         printf("error: The HWID list did not load\n");
