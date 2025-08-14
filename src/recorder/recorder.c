@@ -93,7 +93,7 @@ static char* saveConfig(const char* configName, RecordedClick* clicks, int click
     printf("Config name: %s\n", configName);
     
     // Build config data
-    char* buffer = malloc(RAW_CONFIG_MAX);
+    char* buffer = malloc(CLIPBOARD_BUFFER_MAX);
     if (!buffer) {
         printf("Error: Memory allocation failed\n");
         return NULL;

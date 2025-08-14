@@ -17,7 +17,7 @@
 #include <libwebsockets.h>
 
 // Buffer sizes
-#define RAW_CONFIG_MAX (10 * 1024 * 1024) // 10 MB
+#define CLIPBOARD_BUFFER_MAX (10 * 1024 * 1024) // 10 MB
 #define CONFIG_NAME_MAX 256
 #define RANDOM_NAME_LEN 32
 #define DIALOG_MULTISELECT_BUFFER 32768
@@ -49,7 +49,7 @@
 
 // Limits
 #define MAX_CLICKS 1000000       // 1M
-#define MAX_CONFIG_SIZE 50000000 // 50MB
+#define MAX_CONFIG_SIZE (50 * 1024 * 1024) // 50MB
 #define PLAYER_MIN_HEX_LEN 100
 
 // Other

@@ -33,5 +33,6 @@ char* getRandomWavData(WavCollection* collection, DWORD* size);
 void clearScreen(void);
 void precisionSleep(double milliseconds);
 char* openConfigFileDialog(void);
+char* getClipboardData(void);
 
 #endif // UTILS_H

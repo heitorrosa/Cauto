@@ -235,3 +235,42 @@ char* openConfigFileDialog(void) {
     
     return NULL;
 }
+
+// Get data from Windows clipboard
+char* getClipboardData(void) {
+    if (!OpenClipboard(NULL)) {
+        return NULL;
+    }
+    
+    HANDLE hData = GetClipboardData(CF_TEXT);
+    if (hData == NULL) {
+        CloseClipboard();
+        return NULL;
+    }
+    
+    char* clipText = (char*)GlobalLock(hData);
+    if (clipText == NULL) {
+        CloseClipboard();
+        return NULL;
+    }
+    
+    // Check if clipboard data is too large
+    size_t clipLen = strlen(clipText);
+    if (clipLen > CLIPBOARD_BUFFER_MAX) {
+        GlobalUnlock(hData);
+        CloseClipboard();
+        printf("Error: Clipboard data too large (max %d bytes)\n", CLIPBOARD_BUFFER_MAX);
+        return NULL;
+    }
+    
+    // Copy clipboard data
+    char* result = malloc(clipLen + 1);
+    if (result) {
+        strcpy(result, clipText);
+    }
+    
+    GlobalUnlock(hData);
+    CloseClipboard();
+    
+    return result;
+}

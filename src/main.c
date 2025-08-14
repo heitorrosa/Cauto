@@ -124,7 +124,7 @@ int main() {
             int choice;
             clearScreen();
             printf("1. Select a config file\n");
-            printf("2. Enter Raw config\n");
+            printf("2. Load from Clipboard\n");
             printf("3. Butterfly Click Profile\n");
             printf("4. Jitter Click Profile\n\n");
 
@@ -144,20 +144,25 @@ int main() {
                     break;
 
                 case 2:
-                    fflush(stdin);
+                    if (playerConfig) freePlayerConfig(playerConfig);
                     {
                         clearScreen();
-                        printf("\nEnter raw config: ");
-                        char* rawConfig = malloc(RAW_CONFIG_MAX); // 10MB buffer
-                        if (rawConfig) {
-                            if (fgets(rawConfig, RAW_CONFIG_MAX, stdin) != NULL) {
-                                rawConfig[strcspn(rawConfig, "\n")] = 0;
-                                if (strlen(rawConfig) > 0) {
-                                    if (playerConfig) freePlayerConfig(playerConfig);
-                                    playerConfig = loadPlayerConfig(rawConfig);
+                        
+                        char* clipboardData = getClipboardData();
+                        if (clipboardData) {
+                            if (strlen(clipboardData) > 0) {
+                                playerConfig = loadPlayerConfig(clipboardData);
+                                if (playerConfig) {
+                                    printf("Config loaded successfully from clipboard!\n");
+                                } else {
+                                    printf("Error: Failed to parse config from clipboard\n");
                                 }
+                            } else {
+                                printf("Error: Clipboard is empty\n");
                             }
-                            free(rawConfig);
+                            free(clipboardData);
+                        } else {
+                            printf("Error: Could not read from clipboard\n");
                         }
                     }
                     break;
@@ -211,7 +216,7 @@ int main() {
             printf("Pause Filter Threshold: ");
             scanf_s("%f", &recorder.pauseThreshold);
             if (recorder.pauseThreshold <= 0) {
-                recorder.pauseThreshold = DEFAULT_PAUSE_THRESHOLD_MS;  // Default to 200ms
+                recorder.pauseThreshold = DEFAULT_PAUSE_THRESHOLD_MS;
                 printf("Invalid threshold. Using default: %.0fms\n", DEFAULT_PAUSE_THRESHOLD_MS);
             }
 
