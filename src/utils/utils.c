@@ -40,7 +40,6 @@ void precisionSleep(double milliseconds) {
     } while ((current.QuadPart - start.QuadPart) < targetTicks);
 }
 
-// Clear screen using Windows console API (no external process = more stealth)
 void clearScreen(void) {
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     CONSOLE_SCREEN_BUFFER_INFO csbi;
@@ -94,11 +93,16 @@ int bedrockCursorVisible() {
 }
 
 void sendLeftClickDown(bool down) {
-    INPUT input;
-    ZeroMemory(&input, sizeof(INPUT));
-    input.type = INPUT_MOUSE;
-    input.mi.dwFlags = down ? MOUSEEVENTF_LEFTDOWN : MOUSEEVENTF_LEFTUP;
-    SendInput(1, &input, sizeof(INPUT));
+    POINT pos;
+    GetCursorPos(&pos);
+    
+    HWND targetWindow = GetForegroundWindow();
+    if (targetWindow) {
+        ScreenToClient(targetWindow, &pos);
+        
+        PostMessageA(targetWindow, down ? WM_LBUTTONDOWN : WM_LBUTTONUP, 
+                     down ? MK_LBUTTON : 0, MAKELPARAM(pos.x, pos.y));
+    }
 }
 
 //

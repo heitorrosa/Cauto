@@ -276,6 +276,7 @@ int main() {
         }
 
         fflush(stdin);
+
         printf("\nBreak Blocks (Y or N): ");
         scanf_s(" %c", &breakBlocksInput);
         if(breakBlocksInput == 'Y' || breakBlocksInput == 'y') {
@@ -317,7 +318,7 @@ int main() {
             if (currentWindow != minecraftRecent && 
                 currentWindow != minecraftOld && 
                 currentWindow != minecraftBedrock) {
-                Sleep(IDLE_SLEEP_MS);
+                precisionSleep(1);
             }
         }
 
@@ -374,7 +375,7 @@ int main() {
                 lastIdleUpdate = currentTime;
             }
 
-            Sleep(IDLE_SLEEP_MS);
+            precisionSleep(1);
         }
 
 
@@ -451,7 +452,7 @@ int main() {
             // Mark that we weren't playing this frame
             playerState.wasPlayingLastFrame = false;
             PlaySoundA(NULL, NULL, SND_PURGE);
-            Sleep(IDLE_SLEEP_MS);
+            precisionSleep(1);
         }
     }
 
