@@ -1,4 +1,4 @@
-#include "../resources/include.c"
+#include "../common/common.h"
 
 #include "utils.h"
 
@@ -75,15 +75,8 @@ void clearScreen(void) {
 bool cursorVisible(void) {
     CURSORINFO ci;
     ci.cbSize = sizeof(CURSORINFO);
-    
-    if (!GetCursorInfo(&ci))
-        return false;
-    
-    HCURSOR handle = ci.hCursor;
-    if ((handle > (HCURSOR)50000) && (handle < (HCURSOR)100000))
-        return true;
-
-    return false;
+    if (!GetCursorInfo(&ci)) return false;
+    return (ci.flags & CURSOR_SHOWING) != 0;
 }
 
 int bedrockCursorVisible() {
@@ -100,19 +93,12 @@ int bedrockCursorVisible() {
     return systemVisible && handleValid;
 }
 
-
 void sendLeftClickDown(bool down) {
-    POINT pos;
-    GetCursorPos(&pos);
-    
-    HWND targetWindow = GetForegroundWindow();
-    if (targetWindow) {
-        // Convert screen coordinates to client coordinates
-        ScreenToClient(targetWindow, &pos);
-        
-        PostMessageA(targetWindow, down ? WM_LBUTTONDOWN : WM_LBUTTONUP, 
-                     down ? MK_LBUTTON : 0, MAKELPARAM(pos.x, pos.y));
-    }
+    INPUT input;
+    ZeroMemory(&input, sizeof(INPUT));
+    input.type = INPUT_MOUSE;
+    input.mi.dwFlags = down ? MOUSEEVENTF_LEFTDOWN : MOUSEEVENTF_LEFTUP;
+    SendInput(1, &input, sizeof(INPUT));
 }
 
 //
@@ -121,12 +107,12 @@ void sendLeftClickDown(bool down) {
 
 bool openWavFileDialog(WavCollection* collection) {
     OPENFILENAMEA ofn;
-    char szFile[32768] = {0}; // Large buffer for multiple files
+    char szFile[DIALOG_MULTISELECT_BUFFER] = {0};
 
     ZeroMemory(&ofn, sizeof(ofn));
     ofn.lStructSize = sizeof(ofn);
     ofn.lpstrFile = szFile;
-    ofn.nMaxFile = sizeof(szFile);
+    ofn.nMaxFile = DIALOG_MULTISELECT_BUFFER;
     ofn.lpstrFilter = "WAV Files\0*.wav\0";
     ofn.nFilterIndex = 1;
     ofn.lpstrFileTitle = NULL;
@@ -136,66 +122,59 @@ bool openWavFileDialog(WavCollection* collection) {
     ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR | OFN_ALLOWMULTISELECT | OFN_EXPLORER;
 
     if (GetOpenFileNameA(&ofn)) {
-        collection->files = malloc(10 * sizeof(WavFile)); // Initial capacity
-        collection->capacity = 10;
+        collection->files = malloc(WAV_INIT_CAPACITY * sizeof(WavFile));
+        collection->capacity = WAV_INIT_CAPACITY;
         collection->count = 0;
 
-        // Check if multiple files selected by looking at the buffer structure
         char* directory = szFile;
         char* fileName = szFile + ofn.nFileOffset;
         
-        // If there's a null terminator before nFileOffset, multiple files were selected
         if (szFile[ofn.nFileOffset - 1] == '\0') {
-            // Multiple files - first string is directory, then individual filenames
             while (*fileName) {
                 char fullPath[MAX_PATH];
                 sprintf_s(fullPath, sizeof(fullPath), "%s\\%s", directory, fileName);
                 
-                // Load WAV file into memory
                 HANDLE hFile = CreateFileA(fullPath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
                 if (hFile != INVALID_HANDLE_VALUE) {
                     DWORD fileSize = GetFileSize(hFile, NULL);
-                    char* buffer = malloc(fileSize);
-                    
-                    if (buffer) {
-                        DWORD bytesRead;
-                        if (ReadFile(hFile, buffer, fileSize, &bytesRead, NULL)) {
-                            // Resize array if needed
-                            if (collection->count >= collection->capacity) {
-                                collection->capacity *= 2;
-                                collection->files = realloc(collection->files, collection->capacity * sizeof(WavFile));
+                    if (fileSize != INVALID_FILE_SIZE && fileSize > 0) {
+                        char* buffer = malloc(fileSize);
+                        if (buffer) {
+                            DWORD bytesRead;
+                            if (ReadFile(hFile, buffer, fileSize, &bytesRead, NULL)) {
+                                if (collection->count >= collection->capacity) {
+                                    collection->capacity *= 2;
+                                    collection->files = realloc(collection->files, collection->capacity * sizeof(WavFile));
+                                }
+                                collection->files[collection->count].data = buffer;
+                                collection->files[collection->count].size = fileSize;
+                                collection->count++;
+                                printf("Loaded: %s\n", fileName);
+                            } else {
+                                free(buffer);
                             }
-                            
-                            collection->files[collection->count].data = buffer;
-                            collection->files[collection->count].size = fileSize;
-                            collection->count++;
-                            printf("Loaded: %s\n", fileName);
-                        } else {
-                            free(buffer);
                         }
                     }
                     CloseHandle(hFile);
                 }
-                
-                // Move to next filename
                 fileName += strlen(fileName) + 1;
             }
         } else {
-            // Single file - the entire szFile is the path
             HANDLE hFile = CreateFileA(szFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
             if (hFile != INVALID_HANDLE_VALUE) {
                 DWORD fileSize = GetFileSize(hFile, NULL);
-                char* buffer = malloc(fileSize);
-                
-                if (buffer) {
-                    DWORD bytesRead;
-                    if (ReadFile(hFile, buffer, fileSize, &bytesRead, NULL)) {
-                        collection->files[0].data = buffer;
-                        collection->files[0].size = fileSize;
-                        collection->count = 1;
-                        printf("Loaded: %s\n", szFile);
-                    } else {
-                        free(buffer);
+                if (fileSize != INVALID_FILE_SIZE && fileSize > 0) {
+                    char* buffer = malloc(fileSize);
+                    if (buffer) {
+                        DWORD bytesRead;
+                        if (ReadFile(hFile, buffer, fileSize, &bytesRead, NULL)) {
+                            collection->files[0].data = buffer;
+                            collection->files[0].size = fileSize;
+                            collection->count = 1;
+                            printf("Loaded: %s\n", szFile);
+                        } else {
+                            free(buffer);
+                        }
                     }
                 }
                 CloseHandle(hFile);
@@ -234,15 +213,14 @@ char* getRandomWavData(WavCollection* collection, DWORD* size) {
 
 // Open a file dialog to select a config file
 char* openConfigFileDialog(void) {
-    OPENFILENAME ofn;
-    char szFile[260] = {0}; // Buffer for file name
+    OPENFILENAMEA ofn;
+    char szFile[MAX_PATH] = {0};
     
-    // Initialize OPENFILENAME structure
     ZeroMemory(&ofn, sizeof(ofn));
     ofn.lStructSize = sizeof(ofn);
     ofn.hwndOwner = NULL;
     ofn.lpstrFile = szFile;
-    ofn.nMaxFile = sizeof(szFile);
+    ofn.nMaxFile = MAX_PATH;
     ofn.lpstrFilter = "Config Files\0*.txt;*.cfg;*.config\0All Files\0*.*\0";
     ofn.nFilterIndex = 1;
     ofn.lpstrFileTitle = NULL;
@@ -251,10 +229,9 @@ char* openConfigFileDialog(void) {
     ofn.lpstrTitle = "Select Config File";
     ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
     
-    // Display the Open dialog box
-    if (GetOpenFileName(&ofn)) {
-        return strdup(szFile); // Return a copy of the file path
+    if (GetOpenFileNameA(&ofn)) {
+        return _strdup(szFile);
     }
     
-    return NULL; // User canceled or error occurred
+    return NULL;
 }

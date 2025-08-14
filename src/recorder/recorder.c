@@ -1,4 +1,4 @@
-#include "../resources/include.c"
+#include "../common/common.h"
 #include "recorder.h"
 #include "../utils/utils.h"
 #include "../utils/crypto.h"
@@ -70,7 +70,7 @@ static char* saveConfig(const char* configName, RecordedClick* clicks, int click
                     avgDelay /= validDelays;
                     clicks[i].delay = avgDelay; // Replace long pause with average delay
                 } else {
-                    clicks[i].delay = 80.0; // Fallback to 80ms if no valid delays yet
+                    clicks[i].delay = FALLBACK_AVG_DELAY_MS; // Fallback if no valid delays yet
                 }
                 totalTime += clicks[i].delay + clicks[i].duration;
             }
@@ -85,15 +85,15 @@ static char* saveConfig(const char* configName, RecordedClick* clicks, int click
     printf("Pauses filtered (>%.1fms): %d\n", config->pauseThreshold, longPausesFiltered);
     
     // Generate random filename
-    char filename[256], randomName[33];
-    generateRandomName(randomName, 32);
+    char filename[CONFIG_NAME_MAX], randomName[RANDOM_NAME_LEN + 1];
+    generateRandomName(randomName, RANDOM_NAME_LEN);
     sprintf(filename, "%s.txt", randomName);
     
     printf("Filename: %s\n", filename);
     printf("Config name: %s\n", configName);
     
     // Build config data
-    char* buffer = malloc(10485760); // 10MB buffer for large configs
+    char* buffer = malloc(RAW_CONFIG_MAX);
     if (!buffer) {
         printf("Error: Memory allocation failed\n");
         return NULL;
@@ -175,14 +175,14 @@ char* recordClicks(RecorderConfig* config) {
     
     // Wait for bind key to start
     while (!(GetAsyncKeyState(bindKeyVK) & 0x8000)) {
-        Sleep(10);
+        Sleep(RECORD_START_POLL_MS);
     }
     while (GetAsyncKeyState(bindKeyVK) & 0x8000) {
-        Sleep(10);
+        Sleep(RECORD_START_POLL_MS);
     }
     
     if (config->beepOnStart) {
-        Beep(800, 200);
+        Beep(BEEP_START_FREQ, BEEP_DURATION_MS);
     }
     
     clearScreen();
@@ -192,17 +192,16 @@ char* recordClicks(RecorderConfig* config) {
     
     // Main recording loop
     while (!(GetAsyncKeyState(bindKeyVK) & 0x8000)) {
-        // Check Minecraft window if mcOnly is enabled
         if (config->mcOnly) {
             currentWindow = GetForegroundWindow();
-            minecraftRecent = FindWindowA("GLFW30", NULL);
-            minecraftOld = FindWindowA("LWJGL", NULL);
-            minecraftBedrock = FindWindowA("ApplicationFrameWindow", NULL);
+            minecraftRecent = FindWindowA(MINECRAFT_CLASS_RECENT, NULL);
+            minecraftOld = FindWindowA(MINECRAFT_CLASS_OLD, NULL);
+            minecraftBedrock = FindWindowA(MINECRAFT_CLASS_BEDROCK, NULL);
             
             if (currentWindow != minecraftRecent && 
                 currentWindow != minecraftOld && 
                 currentWindow != minecraftBedrock) {
-                Sleep(10);
+                Sleep(RECORD_START_POLL_MS);
                 continue;
             }
         }
@@ -250,16 +249,16 @@ char* recordClicks(RecorderConfig* config) {
             }
         }
         
-        Sleep(1); // Small sleep to prevent excessive CPU usage
+        Sleep(RECORD_LOOP_SLEEP_MS);
     }
     
     // Wait for bind key release
     while (GetAsyncKeyState(bindKeyVK) & 0x8000) {
-        Sleep(10);
+        Sleep(RECORD_START_POLL_MS);
     }
     
     if (config->beepOnStart) {
-        Beep(600, 200);
+        Beep(BEEP_END_FREQ, BEEP_DURATION_MS);
     }
     
     if (clickCount == 0) {
@@ -269,7 +268,7 @@ char* recordClicks(RecorderConfig* config) {
     }
     
     // Get config name
-    char configName[256];
+    char configName[CONFIG_NAME_MAX];
     printf("\n\nEnter config name: ");
     fflush(stdin);
     if (fgets(configName, sizeof(configName), stdin)) {

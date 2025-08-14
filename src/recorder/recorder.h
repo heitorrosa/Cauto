@@ -1,11 +1,8 @@
 #ifndef RECORDER_H
 #define RECORDER_H
 
-#include "../resources/include.c"
+#include "../common/common.h"
 #include "../utils/utils.h"
-
-#define MAX_CLICKS 1000000
-#define DEFAULT_PAUSE_THRESHOLD_MS 200.0  // Default threshold: delays over 200ms are filtered
 
 // Simple recorder configuration
 typedef struct {

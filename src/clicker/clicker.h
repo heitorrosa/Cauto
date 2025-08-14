@@ -1,7 +1,7 @@
 #ifndef CLICKER_H
 #define CLICKER_H
 
-#include "../resources/include.c"
+#include "../common/common.h"
 #include "../utils/utils.h"
 
 typedef struct {

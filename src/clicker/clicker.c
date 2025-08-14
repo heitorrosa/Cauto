@@ -1,4 +1,4 @@
-#include "../resources/include.c"
+#include "../common/common.h"
 
 #include "clicker.h"
 #include "../utils/utils.h"
@@ -117,9 +117,9 @@ static float gaussianRandom(float mean, float stddev, RandomState *state) {
     if (u < 1e-7f) u = 1e-7f;
     
     float mag = stddev * sqrtf(-2.0f * logf(u));
-    spare = mag * cosf(6.28318530718f * v);
+    spare = mag * cosf(TWO_PI * v);
     
-    return mag * sinf(6.28318530718f * v) + mean;
+    return mag * sinf(TWO_PI * v) + mean;
 }
 
 // Natural human behavioral state update
@@ -174,7 +174,7 @@ static void updateHumanState(RandomState *state, bool isActivelyClicking) {
     float baseConcentration = 0.85f - (state->human.fatigue * 0.2f) - (state->human.exhaustionLevel * 0.15f);
     
     // Add natural attention fluctuations
-    float attentionWave = sinf((float)sessionDuration / 20000.0f * 6.28318530718f) * 0.06f;
+    float attentionWave = sinf((float)sessionDuration / 20000.0f * TWO_PI) * 0.06f;
     float microFocus = randomRange(-0.04f, 0.04f, state);
     
     state->human.concentration = baseConcentration + attentionWave + microFocus;
@@ -345,7 +345,7 @@ bounds_check:
 // Natural interval calculation with proper variance
 float getClickInterval(clickerConfig *clicker, RandomState *state) {
     DWORD currentTimeMs = GetTickCount();
-    bool isActivelyClicking = (currentTimeMs - state->human.lastActiveTime) < 1000;
+    bool isActivelyClicking = (currentTimeMs - state->human.lastActiveTime) < HUMAN_ACTIVE_WINDOW_MS;
     
     float cps = calculateHumanCPS(clicker, state, isActivelyClicking);
     float baseInterval = 1000.0f / cps;
@@ -401,7 +401,7 @@ float getClickInterval(clickerConfig *clicker, RandomState *state) {
     float totalVariation = humanVariation + attentionVariation + muscleVariation;
     float finalInterval = gaussianRandom(baseInterval, totalVariation, state);
     
-    if (finalInterval < 12.0f) finalInterval = 12.0f;
+    if (finalInterval < CLICKER_MIN_INTERVAL_MS) finalInterval = CLICKER_MIN_INTERVAL_MS;
     
     return finalInterval;
 }

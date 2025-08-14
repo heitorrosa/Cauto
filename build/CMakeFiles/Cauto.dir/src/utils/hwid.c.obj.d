@@ -1,6 +1,7 @@
 CMakeFiles/Cauto.dir/src/utils/hwid.c.obj: \
  D:\Repositories\Cauto\src\utils\hwid.c \
- D:/Repositories/Cauto/src/resources/include.c \
+ D:\Repositories\Cauto\src\utils\hwid.h \
+ D:/Repositories/Cauto/src/common/common.h \
  D:/Program\ Files/MSYS2/mingw64/include/stdio.h \
  D:/Program\ Files/MSYS2/mingw64/include/corecrt_stdio_config.h \
  D:/Program\ Files/MSYS2/mingw64/include/corecrt.h \

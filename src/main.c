@@ -1,31 +1,33 @@
-#include "resources/include.c"
+#include "common/common.h"
 
 #include "utils/utils.h"
 #include "clicker/clicker.h"
 #include "player/player.h"
 #include "recorder/recorder.h"
+#include "utils/hwid.h"
 
-// Forward declaration for HWID functions
 void getHWID(char* buffer, size_t bufferSize);
 int HWIDchecker(char *HWIDListURL);
 
 int main() {
-    // char HWIDListURL[] = "resources/hwidlist.txt";
+    /*
+    char HWIDListURL[] = "resources/hwidlist.txt";
 
-    // if(HWIDchecker(HWIDListURL) == -1) {
-    //     printf("error: The HWID list did not load\n");
-    //     return 1;
-    // } else if (HWIDchecker(HWIDListURL) == 0) {
-    //     printf("error: HWID not found in the HWID list.\n");
+    if(HWIDchecker(HWIDListURL) == -1) {
+        printf("error: The HWID list did not load\n");
+        return 1;
+    } else if (HWIDchecker(HWIDListURL) == 0) {
+        printf("error: HWID not found in the HWID list.\n");
 
-    //     char currentHWID[64];
-    //     getHWID(currentHWID, sizeof(currentHWID));
+        char currentHWID[64];
+        getHWID(currentHWID, sizeof(currentHWID));
 
-    //     printf("Your hwid is: %s\n", currentHWID);
-    //     return 1;
-    // } else {
-    //     printf("HWID found in the list, continuing...\n");
-    // }
+        printf("Your hwid is: %s\n", currentHWID);
+        return 1;
+    } else {
+        printf("HWID found in the list, continuing...\n");
+    }
+    */
 
     globalConfig config;
     clickerConfig clicker;
@@ -72,8 +74,8 @@ int main() {
 
             printf("\nSelect the minimum click duration (ms): ");
             scanf_s("%f", &clicker.minDurationClick);
-            if(clicker.minDurationClick < 10) {
-                printf("The click duration must be greater than 10.\n");
+            if(clicker.minDurationClick < MIN_CLICK_DURATION_MS) {
+                printf("The click duration must be greater than %.0f.\n", MIN_CLICK_DURATION_MS);
                 return 1;
             }
 
@@ -90,8 +92,8 @@ int main() {
 
             printf("\nCPS Drop chance (%%): ");
             scanf_s("%f", &clicker.dropChance);
-            if(clicker.dropChance < 0 || clicker.dropChance > 100) {
-                printf("The drop chance must be between 0 and 100.\n");
+            if(clicker.dropChance < PERCENT_MIN || clicker.dropChance > PERCENT_MAX) {
+                printf("The drop chance must be between %.0f and %.0f.\n", PERCENT_MIN, PERCENT_MAX);
                 return 1;
             }
 
@@ -104,8 +106,8 @@ int main() {
 
             printf("\nCPS Spike chance (%%): ");
             scanf_s("%f", &clicker.spikeChance);
-            if(clicker.spikeChance < 0 || clicker.spikeChance > 100) {
-                printf("The spike chance must be between 0 and 100.\n");
+            if(clicker.spikeChance < PERCENT_MIN || clicker.spikeChance > PERCENT_MAX) {
+                printf("The spike chance must be between %.0f and %.0f.\n", PERCENT_MIN, PERCENT_MAX);
                 return 1;
             }
 
@@ -146,9 +148,9 @@ int main() {
                     {
                         clearScreen();
                         printf("\nEnter raw config: ");
-                        char* rawConfig = malloc(10485760); // 10MB buffer
+                        char* rawConfig = malloc(RAW_CONFIG_MAX); // 10MB buffer
                         if (rawConfig) {
-                            if (fgets(rawConfig, 10485760, stdin) != NULL) {
+                            if (fgets(rawConfig, RAW_CONFIG_MAX, stdin) != NULL) {
                                 rawConfig[strcspn(rawConfig, "\n")] = 0;
                                 if (strlen(rawConfig) > 0) {
                                     if (playerConfig) freePlayerConfig(playerConfig);
@@ -209,8 +211,8 @@ int main() {
             printf("Pause Filter Threshold: ");
             scanf_s("%f", &recorder.pauseThreshold);
             if (recorder.pauseThreshold <= 0) {
-                recorder.pauseThreshold = 200.0f;  // Default to 200ms
-                printf("Invalid threshold. Using default: 200ms\n");
+                recorder.pauseThreshold = DEFAULT_PAUSE_THRESHOLD_MS;  // Default to 200ms
+                printf("Invalid threshold. Using default: %.0fms\n", DEFAULT_PAUSE_THRESHOLD_MS);
             }
 
             fflush(stdin);
@@ -303,17 +305,17 @@ int main() {
 
     while (true) {
         HWND currentWindow = GetForegroundWindow();
-        HWND minecraftRecent = FindWindowA("GLFW30", NULL); // > 1.13
-        HWND minecraftOld = FindWindowA("LWJGL", NULL); // < 1.13
-        HWND minecraftBedrock = FindWindowA("ApplicationFrameWindow", NULL); // Bedrock Edition
+        HWND minecraftRecent = FindWindowA(MINECRAFT_CLASS_RECENT, NULL); // > 1.13
+        HWND minecraftOld = FindWindowA(MINECRAFT_CLASS_OLD, NULL); // < 1.13
+        HWND minecraftBedrock = FindWindowA(MINECRAFT_CLASS_BEDROCK, NULL); // Bedrock Edition
 
-        DWORD currentTime = GetTickCount();
+        ULONGLONG currentTime = GetTickCount64();
 
         if (config.mcOnly) {
             if (currentWindow != minecraftRecent && 
                 currentWindow != minecraftOld && 
                 currentWindow != minecraftBedrock) {
-                precisionSleep(1.0);
+                Sleep(IDLE_SLEEP_MS);
             }
         }
 
@@ -335,7 +337,7 @@ int main() {
                 float clickInterval = getClickInterval(&clicker, &randState);
                 
                 float delayAfterClick = clickInterval - durationClick;
-                if (delayAfterClick < 5) delayAfterClick = 5;
+                if (delayAfterClick < MIN_DELAY_AFTER_CLICK_MS) delayAfterClick = MIN_DELAY_AFTER_CLICK_MS;
 
                 // Click Logic
                 sendLeftClickDown(true);
@@ -348,13 +350,13 @@ int main() {
                 precisionSleep(delayAfterClick);
             }
         } else if (config.leftActive) {
-            PlaySoundA(NULL, NULL, SND_PURGE); // Stop any playing sound
+            PlaySoundA(NULL, NULL, SND_PURGE);
             
             // Reduce calculation frequency when idle
-            static DWORD lastIdleUpdate = 0;
-            if (currentTime - lastIdleUpdate > 100) {
-                DWORD timeSinceActive = currentTime - randState.human.lastActiveTime;
-                if (timeSinceActive > 2000) {
+            static ULONGLONG lastIdleUpdate = 0;
+            if (currentTime - lastIdleUpdate > IDLE_UPDATE_INTERVAL_MS) {
+                ULONGLONG timeSinceActive = currentTime - randState.human.lastActiveTime;
+                if (timeSinceActive > INACTIVITY_THRESHOLD_MS) {
                     float currentFatigue = randState.human.fatigue;
                     float currentExhaustion = randState.human.exhaustionLevel;
                     
@@ -370,7 +372,7 @@ int main() {
                 lastIdleUpdate = currentTime;
             }
 
-            precisionSleep(1.0);
+            Sleep(IDLE_SLEEP_MS);
         }
 
 
@@ -447,7 +449,7 @@ int main() {
             // Mark that we weren't playing this frame
             playerState.wasPlayingLastFrame = false;
             PlaySoundA(NULL, NULL, SND_PURGE);
-            precisionSleep(1.0);
+            Sleep(IDLE_SLEEP_MS);
         }
     }
 

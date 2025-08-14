@@ -5,7 +5,7 @@ includedir=${prefix}/include
 
 Name: libwebsockets
 Description: Websockets server and client library
-Version: 4.4.0-82f9e1c
+Version: 4.4.0-3a46a70
 
 Libs: -L${libdir} -lwebsockets
 Cflags: -I${includedir}

@@ -1,5 +1,5 @@
 CMakeFiles/Cauto.dir/src/main.c.obj: D:\Repositories\Cauto\src\main.c \
- D:\Repositories\Cauto\src\resources/include.c \
+ D:\Repositories\Cauto\src\common/common.h \
  D:/Program\ Files/MSYS2/mingw64/include/stdio.h \
  D:/Program\ Files/MSYS2/mingw64/include/corecrt_stdio_config.h \
  D:/Program\ Files/MSYS2/mingw64/include/corecrt.h \
@@ -347,13 +347,14 @@ CMakeFiles/Cauto.dir/src/main.c.obj: D:\Repositories\Cauto\src\main.c \
  D:/Repositories/Cauto/src/external/libwebsockets-4.4.1/include/libwebsockets/lws-netdev.h \
  D:/Repositories/Cauto/src/external/libwebsockets-4.4.1/include/libwebsockets/lws-html.h \
  D:\Repositories\Cauto\src\utils/utils.h \
- D:/Repositories/Cauto/src/resources/include.c \
+ D:/Repositories/Cauto/src/common/common.h \
  D:\Repositories\Cauto\src\clicker/clicker.h \
- D:/Repositories/Cauto/src/resources/include.c \
+ D:/Repositories/Cauto/src/common/common.h \
  D:/Repositories/Cauto/src/utils/utils.h \
  D:\Repositories\Cauto\src\player/player.h \
- D:/Repositories/Cauto/src/resources/include.c \
+ D:/Repositories/Cauto/src/common/common.h \
  D:/Repositories/Cauto/src/utils/utils.h \
  D:\Repositories\Cauto\src\recorder/recorder.h \
- D:/Repositories/Cauto/src/resources/include.c \
- D:/Repositories/Cauto/src/utils/utils.h
+ D:/Repositories/Cauto/src/common/common.h \
+ D:/Repositories/Cauto/src/utils/utils.h \
+ D:\Repositories\Cauto\src\utils/hwid.h

@@ -1,7 +1,7 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include "../resources/include.c"
+#include "../common/common.h"
 #include "../utils/utils.h"
 
 // Simple click data structure
@@ -12,7 +12,7 @@ typedef struct {
 
 // Simple player configuration
 typedef struct {
-    char configName[256];
+    char configName[CONFIG_NAME_MAX];
     ClickData* clicks;
     int clickCount;
     double averageCPS;

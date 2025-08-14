@@ -1,7 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include "../resources/include.c"
+#include "../common/common.h"
 
 typedef struct {
     char* data;
@@ -23,7 +23,6 @@ typedef struct globalConfig {
     bool breakBlocks;
     bool soundClicks;
 } globalConfig;
-
 
 void initGlobalConfig(globalConfig *config);
 bool cursorVisible(void);

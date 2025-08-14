@@ -1,4 +1,4 @@
-#include "../resources/include.c"
+#include "../common/common.h"
 #include "player.h"
 #include "../utils/utils.h"
 #include "../utils/crypto.h"
@@ -86,7 +86,7 @@ static PlayerConfig* parseConfigData(const char* data) {
         sscanf(cpsLine, "Average CPS: %lf", &config->averageCPS);
     }
     
-    if (config->clickCount <= 0 || config->clickCount > 1000000) {
+    if (config->clickCount <= 0 || config->clickCount > MAX_CLICKS) {
         free(config);
         return NULL;
     }
@@ -147,10 +147,10 @@ PlayerConfig* loadPlayerConfig(const char* input) {
         configData = decryptHexData(ButterflyConfig);
     } else if (strcmp(input, "jitter") == 0) {
         configData = decryptHexData(JitterConfig);
-    } else if (strlen(input) > 100 && strlen(input) % 2 == 0) {
+    } else if (strlen(input) > PLAYER_MIN_HEX_LEN && strlen(input) % 2 == 0) {
         // Assume it's encrypted hex data
         configData = decryptHexData(input);
-    } else if (access(input, F_OK) == 0) {
+    } else if (GetFileAttributesA(input) != INVALID_FILE_ATTRIBUTES) {
         // It's a file path
         FILE* file = fopen(input, "rb");
         if (file) {
@@ -158,8 +158,8 @@ PlayerConfig* loadPlayerConfig(const char* input) {
             long size = ftell(file);
             fseek(file, 0, SEEK_SET);
             
-            if (size > 50000000) { // 50MB limit for config files
-                printf("Error: Config file too large (max 50MB)\n");
+            if (size > MAX_CONFIG_SIZE) {
+                printf("Error: Config file too large (max %d bytes)\n", MAX_CONFIG_SIZE);
                 fclose(file);
                 return NULL;
             }
@@ -170,7 +170,7 @@ PlayerConfig* loadPlayerConfig(const char* input) {
                 fileData[size] = '\0';
                 
                 // Try to decrypt if it looks like hex
-                if (size > 100 && size % 2 == 0) {
+                if (size > PLAYER_MIN_HEX_LEN && size % 2 == 0) {
                     configData = decryptHexData(fileData);
                     free(fileData);
                 } else {
@@ -181,7 +181,7 @@ PlayerConfig* loadPlayerConfig(const char* input) {
         }
     } else {
         // Assume it's raw config data
-        configData = strdup(input);
+        configData = _strdup(input);
     }
     
     if (!configData) return NULL;
@@ -194,7 +194,7 @@ PlayerConfig* loadPlayerConfig(const char* input) {
 
 void freePlayerConfig(PlayerConfig* config) {
     if (config) {
-        free(config->clicks);
+        if (config->clicks) free(config->clicks);
         free(config);
     }
 }

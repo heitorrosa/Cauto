@@ -1,8 +1,8 @@
-#include "../resources/include.c"
+#include "hwid.h"
 
 void getHWID(char* buffer, size_t bufferSize) {
     HKEY hKey;
-    char machineGuid[256] = {0};
+    char machineGuid[MACHINE_GUID_BUFFER] = {0};
     DWORD dataSize = sizeof(machineGuid);
     
     // Get Machine GUID from registry (survives reinstalls, tied to motherboard)
@@ -41,11 +41,11 @@ void getHWID(char* buffer, size_t bufferSize) {
 
 
 int HWIDchecker(char *HWIDListURL) {
-    char currentHWID[64];
+    char currentHWID[HWID_STRING_MAX];
     getHWID(currentHWID, sizeof(currentHWID));
 
     FILE *file;
-    char line[256];
+    char line[LINE_BUFFER_MAX];
 
     errno_t err = fopen_s(&file, HWIDListURL, "r");
     if (err != 0 || file == NULL) {
