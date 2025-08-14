@@ -9,7 +9,7 @@ typedef struct {
     char bindKey;
     bool beepOnStart;
     bool mcOnly;
-    float pauseThreshold;  // User-configurable pause threshold in milliseconds
+    float pauseThreshold;
 } RecorderConfig;
 
 // Simple click structure for recording

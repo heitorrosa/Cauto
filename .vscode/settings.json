@@ -1,53 +1,6 @@
 {
     "files.associations": {
         "*.dbclient-js": "javascript",
-        "autoclicker.C": "cpp",
-        "thread": "cpp",
-        "winuser.h": "c",
-        "stdbool.h": "c",
-        "windows.h": "c",
-        "stdio.h": "c",
-        "stdlib.h": "c",
-        "initguid.h": "c",
-        "time.h": "c",
-        "string.h": "c",
-        "math.h": "c",
-        "clicker.h": "c",
-        "array": "c",
-        "bitset": "c",
-        "string_view": "c",
-        "format": "c",
-        "initializer_list": "c",
-        "ranges": "c",
-        "span": "c",
-        "__hash_table": "c",
-        "__split_buffer": "c",
-        "__tree": "c",
-        "deque": "c",
-        "list": "c",
-        "map": "c",
-        "queue": "c",
-        "set": "c",
-        "stack": "c",
-        "string": "c",
-        "unordered_map": "c",
-        "vector": "c",
-        "libwebsockets.h": "c"
-    },
-    "C_Cpp.errorSquiggles": "disabled",
-    "cmake.configureArgs": [
-        "-DVCPKG_APPLOCAL_DEPS=ON",
-        "-DX_VCPKG_APPLOCAL_DEPS_INSTALL=ON",
-        "-DVCPKG_TARGET_TRIPLET=-static"
-    ],
-    "vcpkg.target.useStaticLib": true,
-    "vcpkg.target.defaultTriplet": "-static",
-    "vcpkg.general.enable": true,
-    "vcpkg.target.hostTriplet": "x64-windows",
-    "cmake.configureSettings": {
-        "CMAKE_TOOLCHAIN_FILE": "C:/Users/Administrator/vcpkg/scripts/buildsystems/vcpkg.cmake"
-    },
-    "vcpkg.target.installDependencies": true,
-    "vcpkg.target.preferSystemLibs": false,
-    "vcpkg.target.useManifest": false
+        "utils.h": "c"
+    }
 }

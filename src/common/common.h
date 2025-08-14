@@ -16,7 +16,6 @@
 
 #include <libwebsockets.h>
 
-// Centralized, shared constants to avoid magic numbers
 // Buffer sizes
 #define RAW_CONFIG_MAX (10 * 1024 * 1024) // 10 MB
 #define CONFIG_NAME_MAX 256
@@ -49,8 +48,8 @@
 #define PERCENT_MAX 100.0f
 
 // Limits
-#define MAX_CLICKS 1000000       // 1 million clicks max
-#define MAX_CONFIG_SIZE 50000000 // 50MB max config size
+#define MAX_CLICKS 1000000       // 1M
+#define MAX_CONFIG_SIZE 50000000 // 50MB
 #define PLAYER_MIN_HEX_LEN 100
 
 // Other
