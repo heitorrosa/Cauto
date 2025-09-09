@@ -4,28 +4,8 @@
 #include "clicker/clicker.h"
 #include "player/player.h"
 #include "recorder/recorder.h"
-#include "utils/hwid.h"
 
 int main() {
-    /*
-    char HWIDListURL[] = "common/hwidlist.txt";
-
-    if(HWIDchecker(HWIDListURL) == -1) {
-        printf("error: The HWID list did not load\n");
-        return 1;
-    } else if (HWIDchecker(HWIDListURL) == 0) {
-        printf("error: HWID not found in the HWID list.\n");
-
-        char currentHWID[64];
-        getHWID(currentHWID, sizeof(currentHWID));
-
-        printf("Your hwid is: %s\n", currentHWID);
-        return 1;
-    } else {
-        printf("HWID found in the list, continuing...\n");
-    }
-    */
-
     globalConfig config;
     clickerConfig clicker;
     RecorderConfig recorder = {0};

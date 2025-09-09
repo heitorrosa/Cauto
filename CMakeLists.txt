@@ -16,7 +16,6 @@ add_executable(Cauto
     src/player/player.c
     src/recorder/recorder.c
     src/utils/utils.c
-    src/utils/hwid.c
 )
 
 # Include directories

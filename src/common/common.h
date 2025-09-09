@@ -22,7 +22,6 @@
 #define RANDOM_NAME_LEN 32
 #define DIALOG_MULTISELECT_BUFFER 32768
 #define MACHINE_GUID_BUFFER 256
-#define HWID_STRING_MAX 64
 #define LINE_BUFFER_MAX 256
 
 // Windows class names
