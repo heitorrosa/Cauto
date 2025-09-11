@@ -36,10 +36,10 @@ if(WIN32)
     # Set compiler-specific flags
     if(MSVC)
         # MSVC compiler flags
-        target_compile_options(Cauto PRIVATE /W3 /wd4996 /wd4267 /wd4473)
+        target_compile_options(Cauto PRIVATE /W3 /wd4996 /wd4267 /wd4473 /O3 /GL /Gy /Os /MT /GS- /TC /fp:fast /link /OPT:REF /OPT:ICF /LTCG /NOLOGO /SUBSYSTEM:WINDOWS /MERGE:.rdata=.text /MERGE:.pdata=.text/INTEGRITYCHECK:NO /DYNAMICBASE:NO /NXCOMPAT:NO)
     else()
         # GCC/MinGW compiler flags
-        target_compile_options(Cauto PRIVATE -Wall -Wno-deprecated-declarations -Wno-unused-function)
+        target_compile_options(Cauto PRIVATE -flto -Ofast -march=native -mtune=native -fomit-frame-pointer -fno-stack-protector -fno-plt -ffunction-sections -fdata-sections -Wl,--gc-sections -Wl,--strip-all -Wl,--build-id=none -fvisibility=hidden -s -fno-ident -fno-asynchronous-unwind-tables -fno-unwind-tables -fno-exceptions -nostartfiles -nodefaultlibs -D_FORTIFY_SOURCE=0 -Wall -Wno-deprecated-declarations -Wno-unused-function)
     endif()
 endif()
 
@@ -65,7 +65,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/external/libwebsockets-4.4.1/CMakeLis
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-label -Wno-unused-function -Wno-unused-variable")
     endif()
     
-    add_subdirectory(src/external/libwebsockets-4.4.1)
+    add_subdirectory(src/external/libwebsockets-4.4.1) 
     
     # Restore original flags
     if(MSVC OR CMAKE_COMPILER_IS_GNUCC)
