@@ -1,0 +1,5 @@
+#ifndef COFNIGHANDLER_H
+#define COFNIGHANDLER_H
+
+
+#endif /* COFNIGHANDLER_H */

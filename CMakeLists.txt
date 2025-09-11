@@ -12,10 +12,6 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 # Create the main executable
 add_executable(Cauto 
     src/main.c
-    src/clicker/clicker.c
-    src/player/player.c
-    src/recorder/recorder.c
-    src/utils/utils.c
 )
 
 # Include directories
@@ -44,7 +40,7 @@ if(WIN32)
 endif()
 
 # Check if libwebsockets source exists
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/external/libwebsockets-4.4.1/CMakeLists.txt")
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/libwebsockets-4.4.1/CMakeLists.txt")
     # Configure libwebsockets with minimal features
     set(LWS_WITH_SSL OFF CACHE BOOL "Disable SSL")
     set(LWS_WITHOUT_TESTAPPS ON CACHE BOOL "No test apps")
@@ -65,7 +61,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/external/libwebsockets-4.4.1/CMakeLis
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-label -Wno-unused-function -Wno-unused-variable")
     endif()
     
-    add_subdirectory(src/external/libwebsockets-4.4.1) 
+    add_subdirectory(src/libraries/libwebsockets-4.4.1) 
     
     # Restore original flags
     if(MSVC OR CMAKE_COMPILER_IS_GNUCC)
@@ -74,8 +70,8 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/external/libwebsockets-4.4.1/CMakeLis
     
     # Add websocket support to our executable
     target_include_directories(Cauto PRIVATE 
-        src/external/libwebsockets-4.4.1/include
-        ${CMAKE_BINARY_DIR}/src/external/libwebsockets-4.4.1
+        src/libraries/libwebsockets-4.4.1/include
+        ${CMAKE_BINARY_DIR}/src/libraries/libwebsockets-4.4.1
     )
     target_link_libraries(Cauto websockets ws2_32)
     
@@ -83,7 +79,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/external/libwebsockets-4.4.1/CMakeLis
     add_dependencies(Cauto websockets)
     
 else()
-    message(FATAL_ERROR "libwebsockets source not found in src/external/libwebsockets-4.4.1. This is required for the build.")
+    message(FATAL_ERROR "libwebsockets source not found in src/libraries/libwebsockets-4.4.1. This is required for the build.")
 endif()
 
 install(TARGETS Cauto RUNTIME DESTINATION bin)
