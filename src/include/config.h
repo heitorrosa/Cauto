@@ -24,21 +24,21 @@
 @jitterX The amount of pixels in the X axis that the program will move, helps with humanization (px)
 */
 typedef struct {
-    bool enabled = true;
+    bool enabled; // true
 
-    int cps = 13;
-    int minInterval = 22; // 22ms
-    int maxInterval = 30; // 30ms
+    int cps; // 13cps
+    int minInterval; // 22ms
+    int maxInterval; // 30ms
 
-    int dropChance = 50; // 50%
-    int cpsDrop = 3;
+    int dropChance; // 50%
+    int cpsDrop; // 3
 
-    int spikeChance = 50; // 50%
-    int cpsSpike = 2;
+    int spikeChance; // 50%
+    int cpsSpike; // 2
 
-    int jitterY = 0;
-    int jitterX = 0;
-} leftClicker_Config;
+    int jitterY; // 0px
+    int jitterX; // 0px
+} leftClicker_config;
 
 /*
 @enable boolean to check if the clicker is enabled
@@ -47,18 +47,19 @@ typedef struct {
 
 @clickCount The amount of clicks in the config
 @averageCPS The average CPS for the config
-@clicks* The dataframe for the clicks from the config
+@cickData A struct for the things related with clicks in the config
 */
 typedef struct {
-    bool enabled = false;
+    bool enabled; // false
 
-    char configName;
-    int clickCount;
+    char *configName;
+    int clickCout;
     int averageCPS;
-
-    // clicks* dataframe
-
-} clickPlayer_Config;
+    struct {
+        int clickDuration;
+        int delayBetweenClicks;
+    } *clickData;
+} clickPlayer_config;
 
 /*
 @beepOnStart Emit a system-level beep to indicate if the program is recording your clicks or not
@@ -68,12 +69,13 @@ typedef struct {
 @threashold The maximum allowed pause for the recorder, if it goes above this threashold in ms, the clickIndex will be discarted (ms)
 */
 typedef struct {
-    bool beepOnStart = true;
-    bool mcOnly = true;
+    bool beepOnStart; // true
+    bool mcOnly; // true
 
-    char keybind;
-    int threashold = 250; // 250ms
-} clickRecorder_Config;
+    char keybind; // B
+    int delayBetweenClicks_threashold; // 250ms
+    int clickDuration_threshold; // 100ms
+} clickRecorder_config;
 
 /*
 @mcOnly Boolean to verifies if the clicker should only work in instances of the "Minecraft" environment
@@ -83,11 +85,11 @@ typedef struct {
 @clickSounds Boolean to verify if the Click Sounds feature is enabled, if will be enabled once its verified that an audio file was loaded in the program's memory.
 */
 typedef struct {
-    bool mcOnly = true;
-    bool breakBlocks = false;
-    bool clickInventory = false;
+    bool mcOnly; // true
+    bool breakBlocks; // false
+    bool clickInventory; // false
 
-    bool clickSounds = false;
-} globalSettings_Config;
+    bool clickSounds; // false
+} globalSettings_config;
 
 #endif /* CONFIG_H */
