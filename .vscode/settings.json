@@ -3,6 +3,7 @@
         "*.dbclient-js": "javascript",
         "utils.h": "c",
         "time.h": "c",
-        "config.h": "c"
+        "config.h": "c",
+        "unistd.h": "c"
     }
 }

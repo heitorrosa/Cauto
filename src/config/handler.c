@@ -1,11 +1,6 @@
 #include "../include/common.h"
 #include "../include/config.h"
 
-leftClicker_config leftClicker;
-clickPlayer_config clickPlayer;
-clickRecorder_config clickRecorder;
-globalSettings_config globalSettings;
-
 void loadDefaultConfigs() {
     //
     // Left Clicker
@@ -13,17 +8,14 @@ void loadDefaultConfigs() {
     leftClicker.enabled = true;
 
     leftClicker.cps = 13;
-    leftClicker.minInterval = 22;
-    leftClicker.maxInterval = 30;
+    leftClicker.minDuration = 22;
+    leftClicker.maxDuration = 30;
 
     leftClicker.dropChance = 50;
     leftClicker.cpsDrop = 3;
 
     leftClicker.spikeChance = 50;
     leftClicker.cpsSpike = 2;
-
-    leftClicker.jitterX = 0;
-    leftClicker.jitterY = 0;
 
 
     //
@@ -50,5 +42,8 @@ void loadDefaultConfigs() {
     globalSettings.breakBlocks = false;
     globalSettings.clickInventory = false;
     
+    globalSettings.jitterX = 0;
+    globalSettings.jitterY = 0;
+
     globalSettings.clickSounds = false;
 }

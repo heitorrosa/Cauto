@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#define VERSION CLI // WEB or CLI
+#define VERSION "CLI" // WEB or CLI
 
 /*
 @enable Boolean to check if the leftClicker is enabled
@@ -19,25 +19,19 @@
 
 @spikeChance Chance for a Spike in the CPS, helping in randomization (%)
 @cpsSpike The amount of CPS to spike when it is in its hit chance
-
-@jitterY The amount of pixels in the Y axis that the program will move, helps with humanization (px)
-@jitterX The amount of pixels in the X axis that the program will move, helps with humanization (px)
 */
 typedef struct {
     bool enabled; // true
 
     int cps; // 13cps
-    int minInterval; // 22ms
-    int maxInterval; // 30ms
+    int minDuration; // 22ms
+    int maxDuration; // 30ms
 
     int dropChance; // 50%
     int cpsDrop; // 3
 
     int spikeChance; // 50%
     int cpsSpike; // 2
-
-    int jitterY; // 0px
-    int jitterX; // 0px
 } leftClicker_config;
 
 /*
@@ -82,12 +76,18 @@ typedef struct {
 @breakBlocks Boolean to verify if the clicker should use the BreakBlocks function
 @clickInventory Boolean to verify if the clicker should work when the player is in its inventory (cursor visible)
 
+@jitterY The amount of pixels in the Y axis that the program will move, helps with humanization (px)
+@jitterX The amount of pixels in the X axis that the program will move, helps with humanization (px)
+
 @clickSounds Boolean to verify if the Click Sounds feature is enabled, if will be enabled once its verified that an audio file was loaded in the program's memory.
 */
 typedef struct {
     bool mcOnly; // true
     bool breakBlocks; // false
     bool clickInventory; // false
+
+    int jitterY; // 0px
+    int jitterX; // 0px
 
     bool clickSounds; // false
 } globalSettings_config;

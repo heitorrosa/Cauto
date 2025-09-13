@@ -16,4 +16,12 @@
 
 #include <libwebsockets.h>
 
+#include "../project/utils.c"
+
+#include "config.h"
+leftClicker_config leftClicker;
+clickPlayer_config clickPlayer;
+clickRecorder_config clickRecorder;
+globalSettings_config globalSettings;
+
 #endif /* COMMON_H */

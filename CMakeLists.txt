@@ -35,7 +35,7 @@ if(WIN32)
         target_compile_options(Cauto PRIVATE /W3 /wd4996 /wd4267 /wd4473 /O3 /GL /Gy /Os /MT /GS- /TC /fp:fast /link /OPT:REF /OPT:ICF /LTCG /NOLOGO /SUBSYSTEM:WINDOWS /MERGE:.rdata=.text /MERGE:.pdata=.text/INTEGRITYCHECK:NO /DYNAMICBASE:NO /NXCOMPAT:NO)
     else()
         # GCC/MinGW compiler flags
-        target_compile_options(Cauto PRIVATE -flto -Ofast -march=native -mtune=native -fomit-frame-pointer -fno-stack-protector -fno-plt -ffunction-sections -fdata-sections -Wl,--gc-sections -Wl,--strip-all -Wl,--build-id=none -fvisibility=hidden -s -fno-ident -fno-asynchronous-unwind-tables -fno-unwind-tables -fno-exceptions -nostartfiles -nodefaultlibs -D_FORTIFY_SOURCE=0 -Wall -Wno-deprecated-declarations -Wno-unused-function)
+        target_compile_options(Cauto PRIVATE -flto -Ofast -march=native -mtune=native -fomit-frame-pointer -fno-stack-protector -fno-plt -ffunction-sections -fdata-sections -Wl,--gc-sections -Wl,--strip-all -Wl,--build-id=none -fvisibility=hidden -s -fno-ident -fno-asynchronous-unwind-tables -fno-unwind-tables -fno-exceptions -nostartfiles -nodefaultlibs -D_FORTIFY_SOURCE=0 -Wall -Wno-deprecated-declarations -Wno-unused-function -Waddress)
     endif()
 endif()
 
