@@ -1,47 +1,54 @@
 #include "../include/common.h"
 
-void globalSettingsMenu() {
-    printf("\n\n=== Global Settings ===");
+static int booleanSwitch(_Bool *variable, int input) {
+    switch(input) {
+        case 'Y': case 'y': *variable = true; break;
+        case 'N': case 'n': *variable = false; break;
+        default: break;
+    }
 
+    return 0;
+}
+
+void globalSettingsMenu() {
+    printf("\n=== Global Settings ===");
     printf("\nMinecraft Only (Y or N): ");
     char input = getch();
     printf("%c", input);
-    if(input == 'Y' || input == 'y') globalSettings.mcOnly = true;
-    if(input == 'N' || input == 'n') globalSettings.mcOnly = false;
+    booleanSwitch(&globalSettings.mcOnly, input);
 
     printf("\nBreak Blocks (Y or N): ");
     input = getch();
     printf("%c", input);
-    if(input == 'Y' || input == 'y') globalSettings.breakBlocks = true;
-    if(input == 'N' || input == 'n') globalSettings.breakBlocks = false;
+    booleanSwitch(&globalSettings.breakBlocks, input);
     
     printf("\nClick in Inventory (Y or N): ");
     input = getch();
     printf("%c", input);
-    if(input == 'Y' || input == 'y') globalSettings.clickInventory = true;
-    if(input == 'N' || input == 'n') globalSettings.clickInventory = false;
+    booleanSwitch(&globalSettings.clickInventory, input);
 
     printf("\n\nJitter Y: ");
     scanf_s("%d", &globalSettings.jitterY);
-    
+
     printf("Jitter X: ");
     scanf_s("%d", &globalSettings.jitterX);
 
 
-    printf("\nClickSounds (Y or N): ");
+    printf("\nClick Sounds (Y or N): ");
     input = getch();
     printf("%c", input);
-    if(input == 'Y' || input == 'y') globalSettings.clickSounds = true;
-    if(input == 'N' || input == 'n') globalSettings.clickSounds = false;
+    booleanSwitch(&globalSettings.clickSounds, input);
 
-    if(globalSettings.clickSounds) printf("select clicksounds");
+     if(globalSettings.clickSounds) printf("\nselect sounds");
 }
 
 void leftClickerMenu() {
     clearScreen();
 
-    printf("=== Left Clicker ===");
+    clickPlayer.enabled = false;
+    leftClicker.enabled = true;
 
+    printf("=== Left Clicker ===");
     printf("\nDesired CPS: ");
     scanf_s("%d", &leftClicker.cps);
     if(leftClicker.cps < 1) leftClicker.cps = 1;
@@ -80,17 +87,117 @@ void leftClickerMenu() {
 }
 
 void clickPlayerMenu() {
+    clearScreen();
 
+    clickPlayer.enabled = true;
+    leftClicker.enabled = false;
+
+    printf("=== Click Player ===");
+    printf("\n1. Load config file");
+    printf("\n2. Load config from Clipboard");
+    
+    printf("\n\n3. Jitter Click Config (13CPS)");
+    printf("\n4. Butterfly Click Config (15CPS)");
+
+    char input = getch();
+
+    switch(input) {
+        case '1':
+            // Load Config from file
+            break;
+
+        case '2':
+            // Load config from Clipboard
+            break;
+
+        case '3':
+            // Load Config with the Jitter Click config
+            break;
+
+        case '4':
+            // Load Config with the Butterfly Click config 
+            break;
+
+        default:
+            clickPlayerMenu();
+            break;
+    }
+
+    globalSettingsMenu();
 }
 
 void clickRecorderMenu() {
+    clearScreen();
 
+    printf("=== Click Recorder ===");
+    printf("\nRecord Keybind: ");
+    printf("%c", clickRecorder.keybind = getch());
+
+    printf("\nBeep On Start (Y or N): ");
+    char input = getch();
+    printf("%c", input);
+    booleanSwitch(&clickRecorder.beepOnStart, input);
+
+    printf("\nMinecraft Only (Y or N): ");
+    input = getch();
+    printf("%c", input);
+    booleanSwitch(&clickRecorder.mcOnly, input);
+
+    printf("\n\nClick Duration Threashold: ");
+    scanf_s("%d", &clickRecorder.clickDuration_threshold);
+
+    printf("Delay Between Clicks Threashold: ");
+    scanf_s("%d", &clickRecorder.delayBetweenClicks_threashold);
+
+    globalSettingsMenu();
+}
+
+void displayConfigs(char *input) {
+    clearScreen();
+
+    printf("=== Cauto ===\n");
+
+    switch(*input) {
+        case '1':
+            printf("CPS: %d CPS", leftClicker.cps);
+            printf("\nMinimum Click Duration: %dms", leftClicker.minDuration);
+            printf("\nMaximum Click Duration: %dms", leftClicker.maxDuration);
+
+            printf("\n\nDrop Chance: %d%%", leftClicker.dropChance);
+            printf("\nDrop CPS: %d CPS", leftClicker.cpsDrop);
+            
+            printf("\n\nSpike Chance: %d%%", leftClicker.spikeChance);
+            printf("\nSpike CPS: %d CPS", leftClicker.cpsSpike);
+            break;
+
+        case '2':
+            printf("Config Name: %s", clickPlayer.configName);
+            printf("\nClick Cout: %d", clickPlayer.clickCout);
+            printf("\nAverage CPS: %d CPS", clickPlayer.averageCPS);
+            break;
+
+        default:
+            break;
+    }
+
+    if(*input != '3') {
+        printf("\n\nMinecraft Only: %s", globalSettings.mcOnly ? "Yes" : "No");
+        printf("\nBreak Blocks: %s", globalSettings.breakBlocks ? "Yes" : "No");
+        printf("\nClick in Inventory: %s", globalSettings.clickInventory? "Yes" : "No");
+
+        printf("\n\nJitter X: %dpx", globalSettings.jitterX);
+        printf("\nJitter Y: %dpx", globalSettings.jitterY);
+
+        printf("\n\nClick Sounds: %s\n\n", globalSettings.clickSounds ? "Yes" : "No");
+
+        printf("Press M for the Configuration Menu.");
+    }
 }
 
 void cliMenu() {
     clearScreen();
 
-    printf("=== Cauto Autoclicker ===\n");
+    printf("=== Cauto ===\n");
     printf("Select the desired mode:\n");
 
     printf("1. Left Clicker\n");
@@ -116,4 +223,6 @@ void cliMenu() {
             cliMenu();
             break;
     }
+
+    displayConfigs(&input);
 }
