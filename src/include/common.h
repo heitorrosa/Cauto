@@ -17,6 +17,7 @@
 #include <libwebsockets.h>
 
 #include "../project/utils.c"
+#include "../project/clickSounds.c"
 
 #include "config.h"
 leftClicker_config leftClicker;

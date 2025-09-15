@@ -39,7 +39,7 @@ void globalSettingsMenu() {
     printf("%c", input);
     booleanSwitch(&globalSettings.clickSounds, input);
 
-     if(globalSettings.clickSounds) printf("\nselect sounds");
+     if(globalSettings.clickSounds) selectClickSounds();
 }
 
 void leftClickerMenu() {
@@ -188,7 +188,7 @@ void displayConfigs(char *input) {
         printf("\n\nJitter X: %dpx", globalSettings.jitterX);
         printf("\nJitter Y: %dpx", globalSettings.jitterY);
 
-        printf("\n\nClick Sounds: %s\n\n", globalSettings.clickSounds ? "Yes" : "No");
+        printf("\n\nClick Sounds: %s (%d Files)\n\n", globalSettings.clickSounds ? "Yes" : "No", clickSounds.fileCount);
 
         printf("Press M for the Configuration Menu.");
     }
