@@ -17,6 +17,13 @@ static void freeClickSounds();
 void selectClickSounds();
 void playClickSounds();
 
+void playClickSounds() {
+    if (clickSounds.fileCount > 0) {
+        int index = rand() % clickSounds.fileCount;
+        PlaySoundA(clickSounds.soundData[index].data, NULL, SND_MEMORY | SND_SYSTEM | SND_NOSTOP | SND_ASYNC);
+    }
+}
+
 void selectClickSounds() {
     freeClickSounds();
 
@@ -82,18 +89,11 @@ static int loadFileIntoMemory(const char *path) {
     return clickSounds.fileCount++;
 }
 
-void freeClickSounds() {
+static void freeClickSounds() {
     for (int i = 0; i < clickSounds.fileCount; i++)
         free(clickSounds.soundData[i].data);
         
     free(clickSounds.soundData);
     clickSounds.soundData = NULL;
     clickSounds.fileCount = 0;
-}
-
-void playClickSounds() {
-    if (clickSounds.fileCount > 0) {
-        int index = rand() % clickSounds.fileCount;
-        PlaySoundA(clickSounds.soundData[index].data, NULL, SND_MEMORY | SND_SYSTEM | SND_NOSTOP | SND_ASYNC);
-    }
 }
