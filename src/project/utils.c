@@ -15,3 +15,11 @@ void clearScreen() {
         SetConsoleCursorPosition(hConsole, homeCoords);
     }
 }
+
+// Function to sendClicks to a specific window using PostMessageA (not effective in Bedrock)
+void sendPostMessageA(bool down) {
+    POINT pos;
+    GetCursorPos(&pos);
+
+    PostMessageA(GetForegroundWindow(), down ? WM_LBUTTONDOWN : WM_LBUTTONUP, MK_LBUTTON, MAKELPARAM(pos.x, pos.y));
+}

@@ -15,6 +15,7 @@
         "thread": "c",
         "__locale": "c",
         "locale": "c",
-        "common.h": "c"
+        "common.h": "c",
+        "stdio.h": "c"
     }
 }
