@@ -22,12 +22,7 @@ int main() {
         }
 
         if(GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
-            if(leftClicker.enabled && leftClicker.cps > 0) {
-                sendPostMessageA(true);
-                sendPostMessageA(false);
-                
-                Sleep(100);
-            }
+            if(leftClicker.enabled && leftClicker.cps > 0) leftClickerHandler();
 
             if(clickPlayer.enabled && clickPlayer.clickCout > 0) printf("click player");
 
