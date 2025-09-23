@@ -23,3 +23,26 @@ void sendPostMessageA(bool down) {
 
     PostMessageA(GetForegroundWindow(), down ? WM_LBUTTONDOWN : WM_LBUTTONUP, MK_LBUTTON, MAKELPARAM(pos.x, pos.y));
 }
+
+// Function to check for cursor visibility in JVM based applications
+bool cursorVisible(void) {
+    CURSORINFO ci;
+    ci.cbSize = sizeof(CURSORINFO);
+    if (!GetCursorInfo(&ci)) return false;
+    return (ci.flags & CURSOR_SHOWING) != 0;
+}
+
+// Function to check for cursor visibility in general applications (Bedrock compatible)
+int cursorVisibleSystem() {
+    CURSORINFO ci;
+    ci.cbSize = sizeof(CURSORINFO);
+    
+    if (!GetCursorInfo(&ci)) {
+        return false;
+    }
+    
+    int systemVisible = (ci.flags & CURSOR_SHOWING) != 0;
+    int handleValid = ci.hCursor != NULL;
+    
+    return systemVisible && handleValid;
+}

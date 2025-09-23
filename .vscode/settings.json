@@ -16,6 +16,7 @@
         "__locale": "c",
         "locale": "c",
         "common.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "leftclicker.h": "c"
     }
 }
