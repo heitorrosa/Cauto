@@ -28,6 +28,7 @@ int main() {
 
         if(GetAsyncKeyState(VK_LBUTTON) & 0x8000 && (globalSettings.clickInventory || !cursorVisible())) {
             if(leftClicker.enabled && leftClicker.cps > 0) leftClickerHandler();
+            
             if(clickPlayer.enabled && clickPlayer.clickCout > 0) printf("click player");
             if(globalSettings.jitterX > 0 || globalSettings.jitterY > 0) printf("jitter");
             if(globalSettings.clickSounds && clickSounds.fileCount > 0) playClickSounds();

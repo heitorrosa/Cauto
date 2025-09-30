@@ -433,7 +433,7 @@ void leftClickerHandler() {
 
         Sleep((DWORD)clickDuration);
 
-        if (!globalSettings.breakBlocks) sendPostMessageA(false);
+        if(!globalSettings.breakBlocks) sendPostMessageA(false);
 
         lastClickTime = currentTime;
         randomizer->clickCount++;
