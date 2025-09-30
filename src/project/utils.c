@@ -16,6 +16,29 @@ void clearScreen() {
     }
 }
 
+// https://blog.bearcats.nl/perfect-sleep-function/
+void robustSleep(double seconds) {
+    LARGE_INTEGER frequency, start, target, current;
+    QueryPerformanceFrequency(&frequency);
+    QueryPerformanceCounter(&start);
+    
+    // Calculate target time in performance counter ticks
+    target.QuadPart = start.QuadPart + (LONGLONG)(seconds * frequency.QuadPart);
+
+    // Sleep for most of the time
+    double ms = seconds * 1000 - (1 + 0.02);
+    int ticks = (int)(ms / 1);
+    if (ticks > 0) {
+        Sleep(ticks * 1);
+    }
+
+    // Spin for remaining time
+    do {
+        QueryPerformanceCounter(&current);
+        YieldProcessor();
+    } while (current.QuadPart < target.QuadPart);
+}
+
 // Function to sendClicks to a specific window using PostMessageA (not effective in Bedrock)
 void sendPostMessageA(bool down) {
     POINT pos;

@@ -431,7 +431,7 @@ void leftClickerHandler() {
 
         sendPostMessageA(true);
 
-        Sleep((DWORD)clickDuration);
+        robustSleep((DWORD)clickDuration / 1000.0);
 
         if(!globalSettings.breakBlocks) sendPostMessageA(false);
 

@@ -8,6 +8,7 @@ ClickRandomizer *randomizer = NULL;
 ClickSounds clickSounds = { NULL, 0 };
 
 int main() {
+    timeBeginPeriod(1);
     srand(time(NULL));
     loadDefaultConfigs();
 
@@ -26,16 +27,20 @@ int main() {
             }
         }
 
+        if((GetForegroundWindow() != FindWindowA(MINECRAFT_RECENT, NULL) ||
+            GetForegroundWindow() != FindWindowA(MINECRAFT_OLD, NULL) ||
+            GetForegroundWindow() != FindWindowA(MINECRAFT_BEDROCK, NULL)) && globalSettings.mcOnly) robustSleep(0.001);
+
         if(GetAsyncKeyState(VK_LBUTTON) & 0x8000 && (globalSettings.clickInventory || !cursorVisible())) {
             if(leftClicker.enabled && leftClicker.cps > 0) leftClickerHandler();
-            
             if(clickPlayer.enabled && clickPlayer.clickCout > 0) printf("click player");
+
             if(globalSettings.jitterX > 0 || globalSettings.jitterY > 0) printf("jitter");
             if(globalSettings.clickSounds && clickSounds.fileCount > 0) playClickSounds();
         } else {
             PlaySoundA(NULL, NULL, SND_PURGE);
         }
 
-        Sleep(1);
+        robustSleep(0.001);
     }
 }

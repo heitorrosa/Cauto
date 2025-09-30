@@ -35,4 +35,9 @@ extern globalSettings_config globalSettings;
 extern ClickRandomizer *randomizer;
 extern ClickSounds clickSounds;
 
+// Definitions
+#define MINECRAFT_RECENT "GLFW30"
+#define MINECRAFT_OLD    "LWJGL"
+#define MINECRAFT_BEDROCK "ApplicationFrameWindow"
+
 #endif /* COMMON_H */
