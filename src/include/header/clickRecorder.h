@@ -1,15 +1,13 @@
 #ifndef CLICKRECORDER_H
 #define CLICKRECORDER_H
 
-#include "../../include/common.h"
-#include "../../include/config.h"
+#include "common.h"
 
-clickRecorder_Config recorder_config;
 typedef struct {
-    bool recording = false;
+    bool recording;
 
-    int clickCout = 0;
-    int averageCPS = 0;
+    int clickCout;
+    int averageCPS;
     struct {
         int clickDuration;
         int delayBetweenClicks;

@@ -1,16 +1,4 @@
-#include "../include/common.h"
-
-typedef struct {
-    char *data;
-    size_t size;
-    char *path;
-} Sound;
-typedef struct {
-    Sound *soundData;
-    int fileCount;
-} ClickSounds;
-
-ClickSounds clickSounds = { NULL, 0 };
+#include "common.h"
 
 static int loadFileIntoMemory(const char *path);
 static void freeClickSounds();

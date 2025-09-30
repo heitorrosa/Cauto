@@ -17,9 +17,22 @@
 #include <libwebsockets.h>
 
 #include "config.h"
-leftClicker_config leftClicker;
-clickPlayer_config clickPlayer;
-clickRecorder_config clickRecorder;
-globalSettings_config globalSettings;
+extern leftClicker_config leftClicker;
+extern clickPlayer_config clickPlayer;
+extern clickRecorder_config clickRecorder;
+extern globalSettings_config globalSettings;
+
+// Include headers
+#include "header/utils.h"
+#include "header/clickSounds.h"
+#include "header/leftClicker.h"
+#include "header/clickPlayer.h"
+#include "header/clickRecorder.h"
+
+#include "header/handler.h"
+#include "header/menu.h"
+
+extern ClickRandomizer *randomizer;
+extern ClickSounds clickSounds;
 
 #endif /* COMMON_H */

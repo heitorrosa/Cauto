@@ -1,13 +1,11 @@
-#include "include/common.h"
+#include "common.h"
 
-#include "project/utils.c"
-#include "project/clickSounds.c"
-
-#include "config/menu.c"
-#include "config/handler.c"
-
-
-#include "project/leftClicker/leftClicker.c"
+leftClicker_config leftClicker;
+clickPlayer_config clickPlayer;
+clickRecorder_config clickRecorder;
+globalSettings_config globalSettings;
+ClickRandomizer *randomizer = NULL;
+ClickSounds clickSounds = { NULL, 0 };
 
 int main() {
     srand(time(NULL));
@@ -29,11 +27,6 @@ int main() {
         }
 
         if(GetAsyncKeyState(VK_LBUTTON) & 0x8000 && (globalSettings.clickInventory || !cursorVisible())) {
-                bool cursorVis = cursorVisible();
-                printf("Cursor visible: %s, ClickInventory: %s\n", 
-                    cursorVis ? "true" : "false", 
-                    globalSettings.clickInventory ? "true" : "false");
-                    
             if(leftClicker.enabled && leftClicker.cps > 0) leftClickerHandler();
             if(clickPlayer.enabled && clickPlayer.clickCout > 0) printf("click player");
             if(globalSettings.jitterX > 0 || globalSettings.jitterY > 0) printf("jitter");

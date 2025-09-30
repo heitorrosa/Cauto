@@ -1,11 +1,9 @@
-#include "leftClicker.h"
+#include "common.h"
 
 #define PI 3.14159265359f
 #define TWO_PI 6.28318530718f
 #define HUMAN_ACTIVE_WINDOW_MS 3000
 #define CLICKER_MIN_INTERVAL_MS 5.0f
-
-ClickRandomizer *randomizer;
 
 // ChaCha20-like random number generator for cryptographic quality
 static unsigned int advancedRandom() {
@@ -416,8 +414,8 @@ float getRandomDuration() {
     float duration = gaussianRandom(baseDuration, variation);
     
     // Ensure bounds
-    if (duration < minDur) duration = minDur;
-    if (duration > maxDur) duration = maxDur;
+    if(duration < minDur) duration = minDur;
+    if(duration > maxDur) duration = maxDur;
     
     return duration;
 }
@@ -425,25 +423,18 @@ float getRandomDuration() {
 void leftClickerHandler() {
     static DWORD lastClickTime = 0;
     DWORD currentTime = GetTickCount();
-    
-    // Calculate when next click should happen
+
     float nextInterval = getRandomInterval();
-    
-    // Check if enough time has passed since last click
+
     if (currentTime - lastClickTime >= (DWORD)nextInterval) {
-        // Get click duration for this click
         float clickDuration = getRandomDuration();
-        
-        // Start the click
+
         sendPostMessageA(true);
-        
-        // Hold for the duration
+
         Sleep((DWORD)clickDuration);
-        
-        // Release the click
+
         if (!globalSettings.breakBlocks) sendPostMessageA(false);
-        
-        // Update last click time and count
+
         lastClickTime = currentTime;
         randomizer->clickCount++;
     }

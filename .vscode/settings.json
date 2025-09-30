@@ -17,6 +17,8 @@
         "locale": "c",
         "common.h": "c",
         "stdio.h": "c",
-        "leftclicker.h": "c"
+        "leftclicker.h": "c",
+        "handler.h": "c",
+        "clicksounds.h": "c"
     }
 }

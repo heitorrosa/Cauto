@@ -1,4 +1,4 @@
-#include "../include/common.h"
+#include "common.h"
 
 // Alternative function to system("cls") which creates API calls that can get tracked easily
 void clearScreen() {

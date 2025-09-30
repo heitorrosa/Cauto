@@ -1,4 +1,4 @@
-#include "../include/common.h"
+#include "common.h"
 
 static int booleanSwitch(_Bool *variable, int input) {
     switch(input) {
@@ -11,6 +11,8 @@ static int booleanSwitch(_Bool *variable, int input) {
 }
 
 void globalSettingsMenu() {
+    fflush(stdin);
+
     printf("\n=== Global Settings ===");
     printf("\nMinecraft Only (Y or N): ");
     char input = getch();
@@ -43,6 +45,7 @@ void globalSettingsMenu() {
 }
 
 void leftClickerMenu() {
+    fflush(stdin);
     clearScreen();
 
     clickPlayer.enabled = false;
@@ -87,6 +90,7 @@ void leftClickerMenu() {
 }
 
 void clickPlayerMenu() {
+    fflush(stdin);
     clearScreen();
 
     clickPlayer.enabled = true;
@@ -127,6 +131,7 @@ void clickPlayerMenu() {
 }
 
 void clickRecorderMenu() {
+    fflush(stdin);
     clearScreen();
 
     printf("=== Click Recorder ===");
@@ -153,6 +158,7 @@ void clickRecorderMenu() {
 }
 
 void displayConfigs(char *input) {
+    fflush(stdin);
     clearScreen();
 
     printf("=== Cauto ===\n");
@@ -195,6 +201,7 @@ void displayConfigs(char *input) {
 }
 
 void cliMenu() {
+    fflush(stdin);
     clearScreen();
 
     printf("=== Cauto ===\n");

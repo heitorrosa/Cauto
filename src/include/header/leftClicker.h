@@ -1,8 +1,7 @@
 #ifndef LEFTCLICKER_H
 #define LEFTCLICKER_H
 
-#include "../../include/common.h"
-#include "../../include/config.h"
+#include "common.h"
 
 typedef struct {
     // Random state
@@ -53,9 +52,9 @@ typedef struct {
     float momentaryBias;
 } ClickRandomizer;
 
-void initRandomizer();
-float getRandomInterval();
-float getRandomDuration();
-void leftClickerHandler();
+void initRandomizer(void);
+float getRandomInterval(void);
+float getRandomDuration(void);
+void leftClickerHandler(void);
 
 #endif /* LEFTCLICKER_H */

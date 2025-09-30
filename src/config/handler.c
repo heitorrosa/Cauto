@@ -1,5 +1,4 @@
-#include "../include/common.h"
-#include "../include/config.h"
+#include "common.h"
 
 void loadDefaultConfigs() {
     //

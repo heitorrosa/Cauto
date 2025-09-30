@@ -9,9 +9,19 @@ set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
+# Add include directories
+include_directories(src/include)
+
 # Create the main executable
 add_executable(Cauto 
     src/main.c
+    src/config/handler.c
+    src/config/menu.c
+    src/project/clickSounds.c
+    src/project/utils.c
+    src/project/leftClicker.c
+    src/project/clickPlayer.c
+    src/project/clickRecorder.c
 )
 
 # Include directories
