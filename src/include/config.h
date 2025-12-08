@@ -76,8 +76,9 @@ typedef struct {
 @breakBlocks Boolean to verify if the clicker should use the BreakBlocks function
 @clickInventory Boolean to verify if the clicker should work when the player is in its inventory (cursor visible)
 
-@jitterY The amount of pixels in the Y axis that the program will move, helps with humanization (px)
-@jitterX The amount of pixels in the X axis that the program will move, helps with humanization (px)
+@jitterChance The change of the jitter state to be triggereed (%)
+@jitterY The amount of pixels in the Y axis that the program will move (px)
+@jitterX The amount of pixels in the X axis that the program will move (px)
 
 @clickSounds Boolean to verify if the Click Sounds feature is enabled, if will be enabled once its verified that an audio file was loaded in the program's memory.
 */
@@ -86,6 +87,7 @@ typedef struct {
     bool breakBlocks; // false
     bool clickInventory; // false
 
+    int jitterChance; // 60%
     int jitterY; // 0px
     int jitterX; // 0px
 

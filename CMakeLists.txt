@@ -22,6 +22,7 @@ add_executable(Cauto
     src/project/leftClicker.c
     src/project/clickPlayer.c
     src/project/clickRecorder.c
+    src/project/jitter.c
 )
 
 # Include directories

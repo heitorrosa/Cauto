@@ -334,6 +334,9 @@ bounds_check:
     return modifiedCPS;
 }
 
+/*
+leftClicker functions
+*/
 float getRandomInterval() {
     DWORD currentTimeMs = GetTickCount();
     bool isActivelyClicking = (currentTimeMs - randomizer->lastActiveTime) < HUMAN_ACTIVE_WINDOW_MS;

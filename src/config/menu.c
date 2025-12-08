@@ -29,7 +29,12 @@ void globalSettingsMenu() {
     printf("%c", input);
     booleanSwitch(&globalSettings.clickInventory, input);
 
-    printf("\n\nJitter Y: ");
+    printf("\n\nJitter Chance: ");
+    scanf_s("%d", &globalSettings.jitterChance);
+    if(globalSettings.jitterChance < 0) globalSettings.jitterChance = 0;
+    if(globalSettings.jitterChance > 100) globalSettings.jitterChance = 100;
+
+    printf("Jitter Y: ");
     scanf_s("%d", &globalSettings.jitterY);
 
     printf("Jitter X: ");
@@ -191,7 +196,8 @@ void displayConfigs(char *input) {
         printf("\nBreak Blocks: %s", globalSettings.breakBlocks ? "Yes" : "No");
         printf("\nClick in Inventory: %s", globalSettings.clickInventory? "Yes" : "No");
 
-        printf("\n\nJitter X: %dpx", globalSettings.jitterX);
+        printf("\n\nJitter Chance: %d%%", globalSettings.jitterChance);
+        printf("\nJitter X: %dpx", globalSettings.jitterX);
         printf("\nJitter Y: %dpx", globalSettings.jitterY);
 
         printf("\n\nClick Sounds: %s (%d Files)\n\n", globalSettings.clickSounds ? "Yes" : "No", clickSounds.fileCount);

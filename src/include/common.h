@@ -28,6 +28,7 @@ extern globalSettings_config globalSettings;
 #include "header/leftClicker.h"
 #include "header/clickPlayer.h"
 #include "header/clickRecorder.h"
+#include "header/jitter.h"
 
 #include "header/handler.h"
 #include "header/menu.h"

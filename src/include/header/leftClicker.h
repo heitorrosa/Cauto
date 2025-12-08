@@ -53,6 +53,7 @@ typedef struct {
 } ClickRandomizer;
 
 void initRandomizer(void);
+
 float getRandomInterval(void);
 float getRandomDuration(void);
 void leftClickerHandler(void);

@@ -10,12 +10,12 @@ ClickSounds clickSounds = { NULL, 0 };
 int main() {
     timeBeginPeriod(1);
     srand(time(NULL));
-    loadDefaultConfigs();
 
-    // Initialize randomizer once at startup
     ClickRandomizer clickRandomizer;
     randomizer = &clickRandomizer;
     initRandomizer();
+
+    loadDefaultConfigs();
 
     if(strcmp(VERSION, "CLI") == 0) cliMenu();
 
@@ -35,7 +35,7 @@ int main() {
             if(leftClicker.enabled && leftClicker.cps > 0) leftClickerHandler();
             if(clickPlayer.enabled && clickPlayer.clickCout > 0) printf("click player");
 
-            if(globalSettings.jitterX > 0 || globalSettings.jitterY > 0) printf("jitter");
+            if(globalSettings.jitterX > 0 || globalSettings.jitterY > 0) mouseJitterHandler();
             if(globalSettings.clickSounds && clickSounds.fileCount > 0) playClickSounds();
         } else {
             PlaySoundA(NULL, NULL, SND_PURGE);

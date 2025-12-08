@@ -7,6 +7,7 @@
 void clearScreen();
 void robustSleep(double seconds);
 void sendPostMessageA(bool down);
+
 bool cursorVisible(void);
 int cursorVisibleSystem();
 
