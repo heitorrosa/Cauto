@@ -60,17 +60,16 @@ void mouseJitterHandler(void) {
         return;
     }
     
-    if (jitterState.current.x < jitterState.destination.x) {
+    if (jitterState.current.x < jitterState.destination.x)
         moveMouseX(1);
-    } else if (jitterState.current.x > jitterState.destination.x) {
+    else if (jitterState.current.x > jitterState.destination.x)
         moveMouseX(-1);
-    }
+
     
-    if (jitterState.current.y < jitterState.destination.y) {
+    if (jitterState.current.y < jitterState.destination.y)
         moveMouseY(1);
-    } else if (jitterState.current.y > jitterState.destination.y) {
+    else if (jitterState.current.y > jitterState.destination.y)
         moveMouseY(-1);
-    }
     
     robustSleep(randomRange(0.003, 0.01));
 }
