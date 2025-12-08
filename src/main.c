@@ -20,12 +20,11 @@ int main() {
     if(strcmp(VERSION, "CLI") == 0) cliMenu();
 
     while(1) {
-        if(strcmp(VERSION, "CLI") == 0) {
+        if(strcmp(VERSION, "CLI") == 0)
             if (kbhit()) {
                 char menuKeybind = getch();
                 if (menuKeybind == 'm' || menuKeybind == 'M') cliMenu();
             }
-        }
 
         if((GetForegroundWindow() != FindWindowA(MINECRAFT_RECENT, NULL) ||
             GetForegroundWindow() != FindWindowA(MINECRAFT_OLD, NULL) ||
@@ -37,9 +36,8 @@ int main() {
 
             if(globalSettings.jitterX > 0 || globalSettings.jitterY > 0) mouseJitterHandler();
             if(globalSettings.clickSounds && clickSounds.fileCount > 0) playClickSounds();
-        } else {
+        } else
             PlaySoundA(NULL, NULL, SND_PURGE);
-        }
 
         robustSleep(0.001);
     }
