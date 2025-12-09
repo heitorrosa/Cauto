@@ -6,13 +6,15 @@
 typedef struct {
     bool recording;
 
-    char *configName;
+    char configName[256];
     int clickCout;
-    int averageCPS;
+    float averageCPS;
     struct {
         int clickDuration;
         int delayBetweenClicks;
     } *clickData;
-} clickRecorder_Handler;
+} clickRecorder_handler;
+
+void clickRecorderHandler(void);
 
 #endif /* CLICKRECORDER_H */
