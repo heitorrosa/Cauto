@@ -159,7 +159,7 @@ void clickRecorderMenu() {
     printf("Delay Between Clicks Threashold: ");
     scanf_s("%d", &clickRecorder.delayBetweenClicks_threashold);
 
-    globalSettingsMenu();
+    clickRecorderHandler();
 }
 
 void displayConfigs(char *input) {

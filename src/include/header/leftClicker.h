@@ -1,8 +1,6 @@
 #ifndef LEFTCLICKER_H
 #define LEFTCLICKER_H
 
-#include "common.h"
-
 typedef struct {
     // Random state
     unsigned int chacha_state[16];

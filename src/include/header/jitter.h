@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+// Functions
 void mouseJitterHandler(void);
 
-#endif // JITTER_H
+#endif /* JITTER_H */

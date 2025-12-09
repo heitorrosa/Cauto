@@ -14,8 +14,7 @@ typedef struct {
     int fileCount;
 } ClickSounds;
 
-// Public function declarations
 void selectClickSounds();
 void playClickSounds();
 
-#endif // CLICKSOUNDS_H
+#endif /* CLICKSOUNDS_H */

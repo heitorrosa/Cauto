@@ -14,10 +14,10 @@ int main() {
     ClickRandomizer clickRandomizer;
     randomizer = &clickRandomizer;
     initRandomizer();
-
     loadDefaultConfigs();
 
     if(strcmp(VERSION, "CLI") == 0) cliMenu();
+    if(strcmp(VERSION, "WEB") == 0) printf("websocket");
 
     while(1) {
         if(strcmp(VERSION, "CLI") == 0)

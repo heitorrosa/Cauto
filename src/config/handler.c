@@ -16,12 +16,10 @@ void loadDefaultConfigs() {
     leftClicker.spikeChance = 50;
     leftClicker.cpsSpike = 2;
 
-
     //
     // Click Recorder
     //
     clickPlayer.enabled = false;
-
 
     //
     // Click Recorder
@@ -33,7 +31,6 @@ void loadDefaultConfigs() {
     clickRecorder.clickDuration_threshold = 250;
     clickRecorder.delayBetweenClicks_threashold = 100;
 
-
     //
     // Global Settings
     //
@@ -41,6 +38,7 @@ void loadDefaultConfigs() {
     globalSettings.breakBlocks = false;
     globalSettings.clickInventory = false;
     
+    globalSettings.jitterChance = 60;
     globalSettings.jitterX = 0;
     globalSettings.jitterY = 0;
 

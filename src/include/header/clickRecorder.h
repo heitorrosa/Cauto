@@ -6,6 +6,7 @@
 typedef struct {
     bool recording;
 
+    char *configName;
     int clickCout;
     int averageCPS;
     struct {
