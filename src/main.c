@@ -1,7 +1,7 @@
 #include "common.h"
 
 leftClicker_config leftClicker;
-clickPlayer_config clickPlayer;
+clickPlayer_config clickPlayer = {0};
 clickRecorder_config clickRecorder;
 globalSettings_config globalSettings;
 ClickRandomizer *randomizer = NULL;
@@ -15,6 +15,8 @@ int main() {
     randomizer = &clickRandomizer;
     initRandomizer();
     loadDefaultConfigs();
+
+    clickPlayer.configName = malloc(256);
 
     if(strcmp(VERSION, "CLI") == 0) cliMenu();
     if(strcmp(VERSION, "WEB") == 0) printf("websocket");
@@ -32,7 +34,7 @@ int main() {
 
         if(GetAsyncKeyState(VK_LBUTTON) & 0x8000 && (globalSettings.clickInventory || !cursorVisible())) {
             if(leftClicker.enabled && leftClicker.cps > 0) leftClickerHandler();
-            if(clickPlayer.enabled && clickPlayer.clickCout > 0) printf("click player");
+            if(clickPlayer.enabled && clickPlayer.clickCout > 0) clickPlayerHandler();
 
             if(globalSettings.jitterX > 0 || globalSettings.jitterY > 0) mouseJitterHandler();
             if(globalSettings.clickSounds && clickSounds.fileCount > 0) playClickSounds();

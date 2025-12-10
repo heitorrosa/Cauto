@@ -113,18 +113,22 @@ void clickPlayerMenu() {
     switch(input) {
         case '1':
             // Load Config from file
+            loadConfigFromFile(&clickPlayer);
             break;
 
         case '2':
             // Load config from Clipboard
+            loadConfigFromClipboard(&clickPlayer);
             break;
 
         case '3':
             // Load Config with the Jitter Click config
+            // loadConfigFromString(jitterConfig, &clickPlayer);
             break;
 
         case '4':
             // Load Config with the Butterfly Click config 
+            // loadConfigFromString(butterflyConfig, &clickPlayer);
             break;
 
         default:
@@ -160,6 +164,7 @@ void clickRecorderMenu() {
     scanf_s("%d", &clickRecorder.delayBetweenClicks_threashold);
 
     clickRecorderHandler();
+    cliMenu();
 }
 
 void displayConfigs(char *input) {
