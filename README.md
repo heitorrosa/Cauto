@@ -1,6 +1,6 @@
 # Cauto
 
-An advanced Minecraft autoclicker written in C to test the language's capabilities for automation tasks. Features multiple clicking modes with sophisticated humanization techniques to simulate natural clicking behavior.
+An advanced Minecraft autoclicker written in C to test the language's capabilities for advanced and precise tasks like that.
 
 **Note:** The web-based application is still in development. Currently, only the CLI version is fully functional.
 
